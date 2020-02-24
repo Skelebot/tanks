@@ -102,27 +102,26 @@ impl<'s> System<'s> for TankSystem {
                     + na::Vector3::new(0.0, 0.0, movement.x * 0.1)),
             );
 
-            if movement.y == 0.0 {
-                //Apply friction ourselves
-                phys_world.rigid_body_server().set_linear_velocity(
-                    rb_handle,
-                    &(to_zero(
-                        &phys_world.rigid_body_server().linear_velocity(rb_handle),
-                        2.0, //We can't use this because it's unimplemented!() XDD
-                             //So we have to stick to a constant
-                             //phys_world.rigid_body_server().friction(rb_handle)
-                    )),
-                );
-            }
-            if movement.x == 0.0 {
-                phys_world.rigid_body_server().set_angular_velocity(
-                    rb_handle,
-                    &(to_zero(
-                        &phys_world.rigid_body_server().angular_velocity(rb_handle),
-                        1.0,
-                    )),
-                );
-            }
+            let rb_serv = phys_world.rigid_body_server();
+            let linear_vel = rb_serv.linear_velocity(rb_handle);
+            let angular_vel = rb_serv.angular_velocity(rb_handle);
+
+            //Limit the linear velocity
+            phys_world.rigid_body_server().set_linear_velocity(
+                rb_handle,
+                &limit_magnitude(
+                    &linear_vel,
+                    1.0
+                ),
+            );
+            //Limit the angular velocity
+            phys_world.rigid_body_server().set_angular_velocity(
+                rb_handle,
+                &limit_magnitude(
+                    &angular_vel,
+                    1.0
+                )
+            );
 
             //println!("{:?}", phys_world.rigid_body_server().transform(rb_handle));
 
@@ -141,28 +140,10 @@ impl<'s> System<'s> for TankSystem {
     }
 }
 
-//Brings the vector3 closer to zero by specified amount
-fn to_zero(vec: &na::Vector3<f32>, amount: f32) -> na::Vector3<f32> {
-    let x = if vec.x > 0.0 {
-        0.0_f32.max(vec.x - amount)
-    } else if vec.x < 0.0 {
-        0.0_f32.min(vec.x + amount)
+fn limit_magnitude(vector: &na::Vector3<f32>, mag: f32) -> na::Vector3<f32> {
+    if vector.norm() > mag {
+        return vector * (mag / vector.norm());
     } else {
-        0.0_f32
-    };
-    let y = if vec.y > 0.0 {
-        0.0_f32.max(vec.y - amount)
-    } else if vec.y < 0.0 {
-        0.0_f32.min(vec.y + amount)
-    } else {
-        0.0_f32
-    };
-    let z = if vec.z > 0.0 {
-        0.0_f32.max(vec.z - amount)
-    } else if vec.z < 0.0 {
-        0.0_f32.min(vec.z + amount)
-    } else {
-        0.0_f32
-    };
-    return na::Vector3::new(x, y, z);
+        return *vector;
+    }
 }
