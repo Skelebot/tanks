@@ -1,20 +1,27 @@
 use amethyst::{
-    assets::{AssetStorage, Loader},
+    assets::{AssetStorage, Handle, Loader},
+    core::math as na,
     core::transform::Transform,
-    input::{get_key, is_close_requested, is_key_down, VirtualKeyCode},
+    input::{is_close_requested, is_key_down, VirtualKeyCode},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     window::ScreenDimensions,
 };
 
-use log::info;
+use crate::config::TankConfig;
+use crate::physics::Physics;
+use crate::tank::{Tank, Team};
+
+use amethyst_physics::prelude::*;
+
+#[derive(Default)]
+pub struct SpriteSheetRes {
+    pub handle: Option<Handle<SpriteSheet>>,
+}
 
 pub struct MyState;
-
 impl SimpleState for MyState {
-    // On start will run when this state is initialized. For more
-    // state lifecycle hooks, see:
-    // https://book.amethyst.rs/stable/concepts/state.html#life-cycle
+    // On start will run when this state is initialized.
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
 
@@ -27,8 +34,13 @@ impl SimpleState for MyState {
         init_camera(world, &dimensions);
 
         // Load our sprites and display them
-        let sprites = load_sprites(world);
-        init_sprites(world, &sprites, &dimensions);
+        let sprite_sheet_handle = load_sprite_sheet(world);
+        init_tanks(world, sprite_sheet_handle.clone(), &dimensions);
+
+        let ss_handle_res = SpriteSheetRes {
+            handle: Some(sprite_sheet_handle),
+        };
+        world.insert(ss_handle_res);
     }
 
     fn handle_event(
@@ -43,15 +55,10 @@ impl SimpleState for MyState {
             }
 
             // Listen to any key events
-            if let Some(event) = get_key(&event) {
-                info!("handling key event: {:?}", event);
-            }
-
-            // If you're looking for a more sophisticated event handling solution,
-            // including key bindings and gamepad support, please have a look at
-            // https://book.amethyst.rs/stable/pong-tutorial/pong-tutorial-03.html#capturing-user-input
+            //if let Some(event) = get_key(&event) {
+            //    info!("handling key event: {:?}", event);
+            //}
         }
-
         // Keep going
         Trans::None
     }
@@ -70,7 +77,7 @@ fn init_camera(world: &mut World, dimensions: &ScreenDimensions) {
         .build();
 }
 
-fn load_sprites(world: &mut World) -> Vec<SpriteRender> {
+fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
     // Load the texture for our sprites. We'll later need to
     // add a handle to this texture to our `SpriteRender`s, so
     // we need to keep a reference to it.
@@ -78,7 +85,7 @@ fn load_sprites(world: &mut World) -> Vec<SpriteRender> {
         let loader = world.read_resource::<Loader>();
         let texture_storage = world.read_resource::<AssetStorage<Texture>>();
         loader.load(
-            "sprites/logo.png",
+            "sprites/tanks.png",
             ImageFormat::default(),
             (),
             &texture_storage,
@@ -87,17 +94,16 @@ fn load_sprites(world: &mut World) -> Vec<SpriteRender> {
 
     // Load the spritesheet definition file, which contains metadata on our
     // spritesheet texture.
-    let sheet_handle = {
-        let loader = world.read_resource::<Loader>();
-        let sheet_storage = world.read_resource::<AssetStorage<SpriteSheet>>();
-        loader.load(
-            "sprites/logo.ron",
-            SpriteSheetFormat(texture_handle),
-            (),
-            &sheet_storage,
-        )
-    };
+    let loader = world.read_resource::<Loader>();
+    let sheet_storage = world.read_resource::<AssetStorage<SpriteSheet>>();
+    return loader.load(
+        "sprites/tanks.ron",
+        SpriteSheetFormat(texture_handle),
+        (),
+        &sheet_storage,
+    );
 
+    /*
     // Create our sprite renders. Each will have a handle to the texture
     // that it renders from. The handle is safe to clone, since it just
     // references the asset.
@@ -107,24 +113,106 @@ fn load_sprites(world: &mut World) -> Vec<SpriteRender> {
             sprite_number: i,
         })
         .collect()
+    */
 }
 
-fn init_sprites(world: &mut World, sprites: &[SpriteRender], dimensions: &ScreenDimensions) {
-    for (i, sprite) in sprites.iter().enumerate() {
-        // Center our sprites around the center of the window
-        let x = (i as f32 - 1.) * 100. + dimensions.width() * 0.5;
-        let y = (i as f32 - 1.) * 100. + dimensions.height() * 0.5;
-        let mut transform = Transform::default();
-        transform.set_translation_xyz(x, y, 0.);
+fn init_tanks(world: &mut World, sheet_handle: Handle<SpriteSheet>, dimensions: &ScreenDimensions) {
+    let sprites: Vec<SpriteRender> = (0..2)
+        .map(|i| SpriteRender {
+            sprite_sheet: sheet_handle.clone(),
+            sprite_number: i,
+        })
+        .collect();
 
-        // Create an entity for each sprite and attach the `SpriteRender` as
-        // well as the transform. If you want to add behaviour to your sprites,
-        // you'll want to add a custom `Component` that will identify them, and a
-        // `System` that will iterate over them. See https://book.amethyst.rs/stable/concepts/system.html
-        world
-            .create_entity()
-            .with(sprite.clone())
-            .with(transform)
-            .build();
-    }
+    let x = dimensions.width() * 0.5;
+    let y = dimensions.height() * 0.5;
+    let mut red_trans = Transform::default();
+    red_trans.set_translation_xyz(x, y, 0.);
+    let x = dimensions.width() * 0.5;
+    let y = dimensions.height() * 0.5;
+    let mut blue_trans = Transform::default();
+    blue_trans.set_translation_xyz(x + 50.0, y, 0.);
+    let red_pos = na::Isometry3::from_parts(
+        na::Translation::from(na::Vector3::new(x, y, 0.)),
+        na::UnitQuaternion::from_axis_angle(&na::Vector3::z_axis(), 0.0),
+    );
+    let blue_pos = na::Isometry3::from_parts(
+        na::Translation::from(na::Vector3::new(x + 50.0, y, 0.)),
+        na::UnitQuaternion::from_axis_angle(&na::Vector3::z_axis(), 0.0),
+    );
+
+    //TODO: change to Default::default();
+    //and impl Default for Physics
+    let red_physics = Physics { rb_handle: None };
+
+    let blue_physics = Physics { rb_handle: None };
+
+    //Create the Red Tank
+    let red = world
+        .create_entity()
+        .with(Tank::new(Team::Red))
+        .with(sprites[0].clone())
+        .with(red_physics)
+        .with(red_trans)
+        .build();
+
+    //Create the Blue Tank
+    let blue = world
+        .create_entity()
+        .with(Tank::new(Team::Blue))
+        .with(sprites[1].clone())
+        .with(blue_physics)
+        .with(blue_trans)
+        .build();
+
+    //Add rigidbodies to tanks
+    let tank_config = world.fetch::<TankConfig>();
+    println!("Config fetched");
+    let phys_world = world.fetch::<PhysicsWorld<f32>>();
+    //Set the gravity to zero
+    phys_world
+        .world_server()
+        .set_gravity(&na::Vector3::repeat(0.0));
+
+    let tank_rb_desc = RigidBodyDesc {
+        mode: BodyMode::Dynamic,
+        mass: tank_config.mass,
+        friction: tank_config.friction,
+        bounciness: tank_config.bounciness,
+        lock_rotation_x: true,
+        lock_rotation_y: true,
+        lock_translation_z: true,
+        ..Default::default()
+    };
+
+    //Set the tank's positions
+    let mut storage = world.write_storage::<Physics>();
+    let mut phys = storage.get_mut(blue).expect("Failed to get tank physics");
+    let blue_rb_handle = phys_world.rigid_body_server().create(&tank_rb_desc);
+    phys.rb_handle = Some(blue_rb_handle.clone());
+    phys_world
+        .rigid_body_server()
+        .set_transform(phys.rb_handle.as_ref().unwrap().get(), &blue_pos);
+    let mut phys = storage.get_mut(red).expect("Failed to get tank physics");
+    let red_rb_handle = phys_world.rigid_body_server().create(&tank_rb_desc);
+    phys.rb_handle = Some(red_rb_handle.clone());
+    phys_world
+        .rigid_body_server()
+        .set_transform(phys.rb_handle.as_ref().unwrap().get(), &red_pos);
+
+    //Set the tank's shapes
+    let shape_desc = ShapeDesc::Cube {
+        half_extents: na::Vector3::new(
+            tank_config.size_x as f32 / 2.0,
+            tank_config.size_y as f32 / 2.0,
+            0.1,
+        ),
+    };
+    let shape_tag = phys_world.shape_server().create(&shape_desc);
+    phys_world
+        .rigid_body_server()
+        .set_shape(blue_rb_handle.get(), Some(shape_tag.get()));
+    phys_world
+        .rigid_body_server()
+        .set_shape(red_rb_handle.get(), Some(shape_tag.get()));
 }

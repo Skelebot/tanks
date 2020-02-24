@@ -1,12 +1,16 @@
 [package]
-name = "amethyst-starter-2d"
+name = "tanks"
 version = "0.1.0"
-authors = ["Hilmar Wiegand <me@hwgnd.de>"]
+authors = ["Antoni Simka <antonisimka.8@gmail.com>"]
 edition = "2018"
 
 [dependencies]
 amethyst = "0.13.0"
 log = { version = "0.4.8", features = ["serde"] }
+serde = "1.0.104"
+rand = "0.7.3"
+amethyst_physics = "0.1.1"
+amethyst_nphysics = "0.1.1"
 
 [features]
 default = ["vulkan"]
