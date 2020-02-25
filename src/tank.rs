@@ -5,7 +5,7 @@ use amethyst::{
     input::{InputHandler, StringBindings},
 };
 
-use crate::config::InputConfig;
+use crate::config::{InputConfig, TankConfig};
 use crate::physics::Physics;
 
 use amethyst_physics::prelude::*;
@@ -49,12 +49,13 @@ impl<'s> System<'s> for TankSystem {
         ReadExpect<'s, PhysicsWorld<f32>>,
         Read<'s, InputHandler<StringBindings>>,
         Read<'s, InputConfig>,
+        Read<'s, TankConfig>,
         Read<'s, Time>, //Delta time
     );
 
     fn run(
         &mut self,
-        (mut physics, tanks, phys_world, input, _input_config, _time): Self::SystemData,
+        (mut physics, tanks, phys_world, input, _input_config, tank_config, _time): Self::SystemData,
     ) {
         for (tank, phys) in (&tanks, &mut physics).join() {
             //TODO: Parametric input &str-s for arbitrary number of players
@@ -86,7 +87,7 @@ impl<'s> System<'s> for TankSystem {
 
             //Movement relative to the tank's front
             let mov_rel = phys_world.rigid_body_server().transform(rb_handle).rotation
-                * na::Vector3::new(0.0, movement.y * 300.0, 0.0);
+                * na::Vector3::new(0.0, movement.y * tank_config.accel, 0.0);
 
             //TODO: Delta
             //Move the tank forward and backward
@@ -99,38 +100,42 @@ impl<'s> System<'s> for TankSystem {
             phys_world.rigid_body_server().set_angular_velocity(
                 rb_handle,
                 &(phys_world.rigid_body_server().angular_velocity(rb_handle)
-                    + na::Vector3::new(0.0, 0.0, movement.x * 0.1)),
+                    + na::Vector3::new(0.0, 0.0, movement.x * tank_config.angular_accel)),
             );
 
             let rb_serv = phys_world.rigid_body_server();
-            let linear_vel = rb_serv.linear_velocity(rb_handle);
-            let angular_vel = rb_serv.angular_velocity(rb_handle);
 
+            //Apply linear friction
+            rb_serv.set_linear_velocity(
+                rb_handle,
+                &rb_serv.linear_velocity(rb_handle).scale(1.0 / tank_config.friction)
+            );
+            //Apply angular friction
+            rb_serv.set_angular_velocity(
+                rb_handle,
+                &rb_serv.angular_velocity(rb_handle).scale(1.0 / tank_config.friction)
+            );
             //Limit the linear velocity
-            phys_world.rigid_body_server().set_linear_velocity(
+            rb_serv.set_linear_velocity(
                 rb_handle,
                 &limit_magnitude(
-                    &linear_vel,
-                    1.0
+                    &rb_serv.linear_velocity(rb_handle),
+                    tank_config.max_vel,
                 ),
             );
             //Limit the angular velocity
-            phys_world.rigid_body_server().set_angular_velocity(
+            rb_serv.set_angular_velocity(
                 rb_handle,
                 &limit_magnitude(
-                    &angular_vel,
-                    1.0
+                    &rb_serv.angular_velocity(rb_handle),
+                    tank_config.max_angular_vel,
                 )
             );
-
-            //println!("{:?}", phys_world.rigid_body_server().transform(rb_handle));
 
             //Shooting recoil (broken)
             if let Some(shoot) = fire {
                 if shoot {
-                    let recoil_vec = phys_world.rigid_body_server().transform(rb_handle).rotation
-                        * na::Vector3::new(0.0, -movement.y * 1000.0, 0.0);
-                    println!("{:?}", recoil_vec);
+                    let recoil_vec = rb_serv.transform(rb_handle).rotation * na::Vector3::new(0.0, -1.0 * 10_000.0, 0.0);
                     phys_world
                         .rigid_body_server()
                         .apply_impulse(rb_handle, &recoil_vec);

@@ -205,7 +205,7 @@ fn init_tanks(world: &mut World, sheet_handle: Handle<SpriteSheet>, dimensions: 
         half_extents: na::Vector3::new(
             tank_config.size_x as f32 / 2.0,
             tank_config.size_y as f32 / 2.0,
-            0.1,
+            1.0,
         ),
     };
     let shape_tag = phys_world.shape_server().create(&shape_desc);

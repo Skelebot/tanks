@@ -41,6 +41,10 @@ pub struct TankConfig {
     pub mass: f32,
     pub friction: f32,
     pub bounciness: f32,
+    pub accel: f32,
+    pub angular_accel: f32,
+    pub max_vel: f32,
+    pub max_angular_vel: f32,
 }
 
 impl Default for TankConfig {
@@ -51,6 +55,10 @@ impl Default for TankConfig {
             mass: 0.1,
             friction: 0.1,
             bounciness: 0.5,
+            accel: 300.0,
+            angular_accel: 0.1,
+            max_vel: 10.0,
+            max_angular_vel: 2.0,
         }
     }
 }

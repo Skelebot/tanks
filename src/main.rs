@@ -43,14 +43,15 @@ let resources = app_root.join("resources");
     let tank_config = TankConfig::load(&resources.join("tank_conf.ron"));
 
     let physics_bundle = PhysicsBundle::<f32, NPhysicsBackend>::new()
+        .with_pre_physics(tank::TankSystem, "tank_system".to_string(), vec![])
         .with_post_physics(utils::SpriteTransformSystem, "sp_trans_system".to_string(), vec![]);
 
     let game_data = GameDataBuilder::default()
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(physics_bundle)?
-        .with(tank::TankSystem, "tank_system", &["input_system"])
-        .with(projectile::ProjectileSystem, "projectile_system", &["tank_system"])
+        //.with(tank::TankSystem, "tank_system", &["input_system"])
+        .with(projectile::ProjectileSystem, "projectile_system", &[])
         .with(utils::SpriteTransformSystem, "physics_system", &["projectile_system"])
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
