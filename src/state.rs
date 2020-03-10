@@ -11,6 +11,7 @@ use amethyst::{
 use crate::config::TankConfig;
 use crate::physics::Physics;
 use crate::tank::{Tank, Team};
+use crate::level::MazeLevel;
 
 use amethyst_physics::prelude::*;
 
@@ -35,12 +36,16 @@ impl SimpleState for MyState {
 
         // Load our sprites and display them
         let sprite_sheet_handle = load_sprite_sheet(world);
-        init_tanks(world, sprite_sheet_handle.clone(), &dimensions);
-
         let ss_handle_res = SpriteSheetRes {
-            handle: Some(sprite_sheet_handle),
+            handle: Some(sprite_sheet_handle.clone()),
         };
         world.insert(ss_handle_res);
+
+        //Initialize players
+        init_tanks(world, sprite_sheet_handle, &dimensions);
+
+        //Initialize the maze
+        init_maze(world);
     }
 
     fn handle_event(
@@ -102,18 +107,12 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
         (),
         &sheet_storage,
     );
+}
 
-    /*
-    // Create our sprite renders. Each will have a handle to the texture
-    // that it renders from. The handle is safe to clone, since it just
-    // references the asset.
-    (0..3)
-        .map(|i| SpriteRender {
-            sprite_sheet: sheet_handle.clone(),
-            sprite_number: i,
-        })
-        .collect()
-    */
+fn init_maze(world: &mut World) {
+    let maze_res = MazeLevel::new(world);
+
+    world.insert(maze_res);
 }
 
 fn init_tanks(world: &mut World, sheet_handle: Handle<SpriteSheet>, dimensions: &ScreenDimensions) {
@@ -167,7 +166,6 @@ fn init_tanks(world: &mut World, sheet_handle: Handle<SpriteSheet>, dimensions: 
 
     //Add rigidbodies to tanks
     let tank_config = world.fetch::<TankConfig>();
-    println!("Config fetched");
     let phys_world = world.fetch::<PhysicsWorld<f32>>();
     //Set the gravity to zero
     phys_world
@@ -187,12 +185,14 @@ fn init_tanks(world: &mut World, sheet_handle: Handle<SpriteSheet>, dimensions: 
 
     //Set the tank's positions
     let mut storage = world.write_storage::<Physics>();
+
     let mut phys = storage.get_mut(blue).expect("Failed to get tank physics");
     let blue_rb_handle = phys_world.rigid_body_server().create(&tank_rb_desc);
     phys.rb_handle = Some(blue_rb_handle.clone());
     phys_world
         .rigid_body_server()
         .set_transform(phys.rb_handle.as_ref().unwrap().get(), &blue_pos);
+
     let mut phys = storage.get_mut(red).expect("Failed to get tank physics");
     let red_rb_handle = phys_world.rigid_body_server().create(&tank_rb_desc);
     phys.rb_handle = Some(red_rb_handle.clone());
@@ -205,9 +205,10 @@ fn init_tanks(world: &mut World, sheet_handle: Handle<SpriteSheet>, dimensions: 
         half_extents: na::Vector3::new(
             tank_config.size_x as f32 / 2.0,
             tank_config.size_y as f32 / 2.0,
-            1.0,
+            3.0,
         ),
     };
+
     let shape_tag = phys_world.shape_server().create(&shape_desc);
     phys_world
         .rigid_body_server()

@@ -3,7 +3,7 @@ use amethyst::{
     core::transform::TransformBundle,
     prelude::*,
     renderer::{
-        plugins::{RenderFlat2D, RenderToWindow},
+        plugins::{RenderFlat2D, RenderToWindow, RenderDebugLines},
         types::DefaultBackend,
         RenderingBundle,
     },
@@ -16,6 +16,8 @@ use amethyst_physics::PhysicsBundle;
 use amethyst_nphysics::NPhysicsBackend;
 
 mod state;
+mod level;
+mod remove;
 pub mod utils;
 pub mod physics;
 pub mod tank;
@@ -44,23 +46,26 @@ let resources = app_root.join("resources");
 
     let physics_bundle = PhysicsBundle::<f32, NPhysicsBackend>::new()
         .with_pre_physics(tank::TankSystem, "tank_system".to_string(), vec![])
-        .with_post_physics(utils::SpriteTransformSystem, "sp_trans_system".to_string(), vec![]);
+        .with_post_physics(utils::SpriteTransformSystem, "sp_trans_system".to_string(), vec![])
+        .with_post_physics(projectile::ProjectileSystem, "proj_system".to_string(), vec![])
+        .with_post_physics(remove::RemoveSystem, "remove".to_string(), vec!["proj_system".to_string()]);
 
     let game_data = GameDataBuilder::default()
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(physics_bundle)?
         //.with(tank::TankSystem, "tank_system", &["input_system"])
-        .with(projectile::ProjectileSystem, "projectile_system", &[])
-        .with(utils::SpriteTransformSystem, "physics_system", &["projectile_system"])
+        //.with(utils::SpriteTransformSystem, "physics_system", &[])
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
                 .with_plugin(
                     RenderToWindow::from_config_path(display_config)
                         .with_clear([1.0, 1.0, 1.0, 1.0]),
                 )
-                .with_plugin(RenderFlat2D::default()),
+                .with_plugin(RenderFlat2D::default())
+                .with_plugin(RenderDebugLines::default()),
         )?;
+
 
     let mut game = Application::build(resources, state::MyState)?
         .with_resource(bullet_config)
@@ -68,7 +73,7 @@ let resources = app_root.join("resources");
         .with_resource(tank_config)
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
-            60
+            144
         )
         .build(game_data)?;
     game.run();

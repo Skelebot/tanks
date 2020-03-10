@@ -1,7 +1,4 @@
-use rand::{thread_rng, Rng, rngs::ThreadRng};
- 
-const WIDTH: usize = 10;
-const HEIGHT: usize = 10;
+use rand::{thread_rng, Rng};
  
 #[derive(Clone, Copy)]
 struct Cell {
@@ -16,29 +13,32 @@ impl Cell {
 }
  
 pub struct Maze {
-    cells: [[bool; HEIGHT]; WIDTH],         //cell visited/non visited
-    pub walls_h: [[bool; WIDTH]; HEIGHT + 1],   //horizontal walls existing/removed
-    pub walls_v: [[bool; WIDTH + 1]; HEIGHT],   //vertical walls existing/removed
-    thread_rng: ThreadRng,                  //Random numbers generator
+    width: usize,
+    height: usize,
+    cells: Vec<Vec<bool>>,  //Cell visited/unvisisted
+    pub walls_h: Vec<Vec<bool>>,   //horizontal walls existing/removed
+    pub walls_v: Vec<Vec<bool>>,   //vertical walls existing/removed
+    //thread_rng: ThreadRng,                  //Random numbers generator
 }
  
 impl Maze {
  
     ///Inits the maze, with all the cells unvisited and all the walls active
-    pub fn new() -> Maze {
+    pub fn new(width: usize, height: usize) -> Maze {
         Maze { 
-            cells: [[true; HEIGHT]; WIDTH], 
-            walls_h: [[true; WIDTH]; HEIGHT + 1],
-            walls_v: [[true; WIDTH + 1]; HEIGHT],
-            thread_rng: thread_rng(),
+            width: width,
+            height: height,
+            cells: vec![vec![true; height]; width], 
+            walls_h: vec![vec![true; width]; height + 1],
+            walls_v: vec![vec![true; width + 1]; height],
         }
     }
 
     ///Reset the maze
     pub fn reset(&mut self) {
-        self.cells = [[true; HEIGHT]; WIDTH];
-        self.walls_h = [[true; WIDTH]; HEIGHT + 1];
-        self.walls_v = [[true; WIDTH + 1]; HEIGHT];
+        self.cells = vec![vec![true; self.height]; self.width];
+        self.walls_h = vec![vec![true; self.width]; self.height + 1];
+        self.walls_v = vec![vec![true; self.width + 1]; self.height];
     }
  
     ///(Randomly) chooses the starting cell
@@ -49,16 +49,17 @@ impl Maze {
  
     ///Opens the enter and exit doors
     pub fn open_doors(&mut self) {
-        let from_top: bool = self.thread_rng.gen();
-        let limit = if from_top { WIDTH } else { HEIGHT };
-        let door = self.thread_rng.gen_range(0, limit);
-        let exit = self.thread_rng.gen_range(0, limit);
+        let mut thread_rng = thread_rng();
+        let from_top: bool = thread_rng.gen();
+        let limit = if from_top { self.width } else { self.height };
+        let door = thread_rng.gen_range(0, limit);
+        let exit = thread_rng.gen_range(0, limit);
         if from_top { 
             self.walls_h[0][door] = false;
-            self.walls_h[HEIGHT][exit] = false;
+            self.walls_h[self.height][exit] = false;
         } else {
             self.walls_v[door][0] = false;
-            self.walls_v[exit][WIDTH] = false;
+            self.walls_v[exit][self.width] = false;
         }
     }
  
@@ -73,16 +74,17 @@ impl Maze {
  
     ///Returns a random non-visited neighbor of the Cell passed as argument
     fn neighbor(&mut self, cell: &Cell) -> Option<Cell> {
+        let mut thread_rng = thread_rng();
         self.cells[cell.col][cell.row] = false;
         let mut neighbors = Vec::new();
         if cell.col > 0 && self.cells[cell.col - 1][cell.row] { neighbors.push(Cell::from(cell.col - 1, cell.row)); }
         if cell.row > 0 && self.cells[cell.col][cell.row - 1] { neighbors.push(Cell::from(cell.col, cell.row - 1)); }
-        if cell.col < WIDTH - 1 && self.cells[cell.col + 1][cell.row] { neighbors.push(Cell::from(cell.col + 1, cell.row)); }
-        if cell.row < HEIGHT - 1 && self.cells[cell.col][cell.row + 1] { neighbors.push(Cell::from(cell.col, cell.row + 1)); }
+        if cell.col < self.width - 1 && self.cells[cell.col + 1][cell.row] { neighbors.push(Cell::from(cell.col + 1, cell.row)); }
+        if cell.row < self.height - 1 && self.cells[cell.col][cell.row + 1] { neighbors.push(Cell::from(cell.col, cell.row + 1)); }
         if neighbors.is_empty() {
             None
         } else {
-            let next = neighbors.get(self.thread_rng.gen_range(0, neighbors.len())).unwrap();
+            let next = neighbors.get(thread_rng.gen_range(0, neighbors.len())).unwrap();
             self.remove_wall(cell, next);
             Some(*next)
         }
@@ -129,10 +131,10 @@ impl Maze {
  
     ///Paints the maze
     pub fn paint(&self) {
-        for i in 0 .. HEIGHT {
+        for i in 0 .. self.width {
             self.paint_row(true, i);
             self.paint_row(false, i);
         }
-        self.paint_row(true, HEIGHT);
+        self.paint_row(true, self.width);
     }
 }

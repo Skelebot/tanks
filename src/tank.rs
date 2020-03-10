@@ -21,6 +21,7 @@ pub enum Team {
 pub struct Tank {
     pub team: Team,
     pub size: f32,
+    pub weapon_timeout: Option<f32>,
     //shoot timeout
     //weapon
     //ammo
@@ -31,6 +32,7 @@ impl Tank {
         Tank {
             team,
             size: TANK_SIZE,
+            weapon_timeout: None,
         }
     }
 }
@@ -59,16 +61,14 @@ impl<'s> System<'s> for TankSystem {
     ) {
         for (tank, phys) in (&tanks, &mut physics).join() {
             //TODO: Parametric input &str-s for arbitrary number of players
-            let (mov_forward, mov_side, fire) = match tank.team {
+            let (mov_forward, mov_side) = match tank.team {
                 Team::Red => (
                     input.axis_value("p1_forward"),
                     input.axis_value("p1_side"),
-                    input.action_is_down("p1_fire"),
                 ),
                 Team::Blue => (
                     input.axis_value("p2_forward"),
                     input.axis_value("p2_side"),
-                    input.action_is_down("p2_fire"),
                 ),
             };
 
@@ -131,16 +131,6 @@ impl<'s> System<'s> for TankSystem {
                     tank_config.max_angular_vel,
                 )
             );
-
-            //Shooting recoil (broken)
-            if let Some(shoot) = fire {
-                if shoot {
-                    let recoil_vec = rb_serv.transform(rb_handle).rotation * na::Vector3::new(0.0, -1.0 * 10_000.0, 0.0);
-                    phys_world
-                        .rigid_body_server()
-                        .apply_impulse(rb_handle, &recoil_vec);
-                }
-            }
         }
     }
 }
