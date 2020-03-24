@@ -1,6 +1,0 @@
-(
-  sprite_num: 2,
-  radius: 1.0,
-  speed: 700.0,
-  max_lifetime: 100,
-)

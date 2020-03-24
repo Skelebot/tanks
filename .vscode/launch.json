@@ -1,14 +1,45 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug",
-            "program": "${workspaceRoot}/target/debug/${workspaceRootFolderName}",
+            "name": "Debug executable 'tanks2'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=tanks2",
+                    "--package=tanks2"
+                ],
+                "filter": {
+                    "name": "tanks2",
+                    "kind": "bin"
+                }
+            },
             "args": [],
-            "cwd": "${workspaceRoot}",
-            "sourceLanguages": ["rust"]
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'tanks2'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=tanks2",
+                    "--package=tanks2"
+                ],
+                "filter": {
+                    "name": "tanks2",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
         }
     ]
 }

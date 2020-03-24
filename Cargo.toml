@@ -1,20 +1,20 @@
 [package]
 name = "tanks"
-version = "0.1.0"
+version = "0.1.5"
 authors = ["Antoni Simka <antonisimka.8@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-amethyst = "0.13.0"
 log = { version = "0.4.8", features = ["serde"] }
-serde = "1.0.104"
+serde = "1.0.105"
 rand = "0.7.3"
-amethyst_physics = "0.1.1"
-amethyst_nphysics = "0.1.1"
 
-[features]
-default = ["vulkan"]
-empty = ["amethyst/empty"]
-metal = ["amethyst/metal"]
-vulkan = ["amethyst/vulkan"]
-nightly = ["amethyst/nightly"]
+[dependencies.specs-physics]
+git = "https://github.com/distransient/specs-physics/"
+branch = "0.4.0"
+default-features = false
+features=["dim2", "amethyst"]
+
+[dependencies.amethyst]
+git = "https://github.com/amethyst/amethyst.git"
+features = ["vulkan"]

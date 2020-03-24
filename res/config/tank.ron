@@ -1,0 +1,11 @@
+(
+    size_x: 24,
+    size_y: 24,
+    density: 1.0,
+    linear_accel: 13.0,
+    angular_accel: 1.5,
+    max_linear_vel: 450.0,
+    max_angular_vel: 4.5,
+    linear_damping: 10.0,
+    angular_damping: 12.0,
+)

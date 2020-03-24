@@ -1,0 +1,5 @@
+(
+  title: "tanks2",
+  dimensions: Some((800, 600)),
+  resizable: false,
+)

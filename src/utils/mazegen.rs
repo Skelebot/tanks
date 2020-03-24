@@ -1,9 +1,9 @@
 use rand::{thread_rng, Rng};
  
 #[derive(Clone, Copy)]
-struct Cell {
-    col: usize,
-    row: usize,
+pub struct Cell {
+    pub col: usize,
+    pub row: usize,
 }
  
 impl Cell {
@@ -11,13 +11,22 @@ impl Cell {
         Cell {col, row}
     }
 }
+
+impl Default for Cell {
+    fn default() -> Self {
+        Cell::from(0, 0)
+    }
+}
  
 pub struct Maze {
-    width: usize,
-    height: usize,
+    pub width: usize,
+    pub height: usize,
     cells: Vec<Vec<bool>>,  //Cell visited/unvisisted
     pub walls_h: Vec<Vec<bool>>,   //horizontal walls existing/removed
     pub walls_v: Vec<Vec<bool>>,   //vertical walls existing/removed
+    pub start_cell: Cell,
+    pub end_cell: Cell,
+    //Thread_rng is not Send+Sync, so we couldn't use Maze in resources
     //thread_rng: ThreadRng,                  //Random numbers generator
 }
  
@@ -31,6 +40,8 @@ impl Maze {
             cells: vec![vec![true; height]; width], 
             walls_h: vec![vec![true; width]; height + 1],
             walls_v: vec![vec![true; width + 1]; height],
+            start_cell: Cell::default(),
+            end_cell: Cell::default()
         }
     }
 
@@ -39,15 +50,20 @@ impl Maze {
         self.cells = vec![vec![true; self.height]; self.width];
         self.walls_h = vec![vec![true; self.width]; self.height + 1];
         self.walls_v = vec![vec![true; self.width + 1]; self.height];
+        self.start_cell = Cell::default();
+        self.end_cell = Cell::default();
     }
  
     ///(Randomly) chooses the starting cell
     fn first(&mut self) -> Cell {
-        //Cell::from(self.thread_rng.gen_range(0, WIDTH), self.thread_rng.gen_range(0, HEIGHT))
-        Cell::from(0, 0)
+        let mut thread_rng = thread_rng();
+        let first = Cell::from(thread_rng.gen_range(0, self.width), thread_rng.gen_range(0, self.height));
+        self.start_cell = first; 
+        return first;
     }
  
     ///Opens the enter and exit doors
+    #[allow(unused)]
     pub fn open_doors(&mut self) {
         let mut thread_rng = thread_rng();
         let from_top: bool = thread_rng.gen();
@@ -101,7 +117,10 @@ impl Maze {
             }
             match cell_stack.pop() {
                 Some(cell) => next = cell,
-                None => break,
+                None => {
+                    self.end_cell = next;
+                    break;
+                },
             }
         }
     }
@@ -130,6 +149,7 @@ impl Maze {
     } 
  
     ///Paints the maze
+    #[allow(unused)]
     pub fn paint(&self) {
         for i in 0 .. self.width {
             self.paint_row(true, i);
