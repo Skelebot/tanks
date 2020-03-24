@@ -34,22 +34,13 @@ impl SimpleState for GameplayState {
         // Place the camera
         init_camera(world, &dimensions);
 
-        // Load our sprites and display them
+        // Load our sprite sheet and insert it into the World
+        // as a Resource, so that Systems can use it
         let sprite_sheet_handle = load_sprite_sheet(world);
         let sprite_sheet_res = SpriteSheetRes {
             handle: Some(sprite_sheet_handle.clone())
         };
         world.insert(sprite_sheet_res);
-        let mut debug_transform = Transform::default();
-        debug_transform.set_translation(na::Vector3::new(dimensions.width()/2.0, dimensions.height()/2.0, 0.8));
-        let debug_sprite = SpriteRender {
-            sprite_sheet: sprite_sheet_handle.clone(),
-            sprite_number: 0
-        };
-
-        world.create_entity()
-        .with(debug_sprite)
-        .with(debug_transform).build();
 
         // Initialize the level
         init_level(world, &dimensions);
@@ -60,7 +51,7 @@ impl SimpleState for GameplayState {
     // Handle keyboard and window events,
     // Exit the state if window close was requested,
     // or if user is holding the ESC key
-    // TODO: Handle window resizing (move the camera, players and maze)
+    // TODO: Handle window resizing (reposition the camera, players and maze)
     fn handle_event(&mut self, mut _data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
@@ -74,7 +65,7 @@ impl SimpleState for GameplayState {
 /// Initialize the level in the middle of the game's screen
 fn init_level(world: &mut World, dimensions: &ScreenDimensions) {
     // It's up to this function which type and what size of level we should create
-    let maze = MazeLevel::new(world, dimensions, 5, 4);
+    let maze = MazeLevel::new(world, dimensions, 6, 5);
     world.insert(maze);
 }
 
@@ -135,9 +126,6 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
             sprite_sheet: sheet_handle.clone(),
             sprite_number: i,
         }).collect();
-
-    
-    // GAME SPECIFIC PLAYER INITIALIZATION
     
     // Set tanks' transforms to level's starting positions
     // Red tank's Transform
@@ -170,22 +158,26 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
         tank_config.size_y as f32 * 0.5,
     )));
 
-    // Create the collider for tanks
+    // Create the collider to be cloned for both tanks
     let tank_collider = ColliderDesc::new(tank_shape).density(tank_config.density);
 
-    // TODO: Move RigidBodyDesc out of the tanks' entity creation
+    // Create the RigidBody description to be cloned for both tanks
+    let mut tank_rb_desc = RigidBodyDesc::new();
+    tank_rb_desc
+        .set_max_linear_velocity(tank_config.max_linear_vel)
+        .set_max_angular_velocity(tank_config.max_angular_vel)
+        .set_linear_damping(tank_config.linear_damping)
+        .set_angular_damping(tank_config.angular_damping);
+
     // Create the red tank
     world.create_entity()
         .with(Tank::new(Team::Red))
         .with(sprites[0].clone())
         .with(red_transform)
         .with_body::<f32, _>(
-            RigidBodyDesc::new()
+            tank_rb_desc.clone()  // Cloned, because we have to use the same variable
+                                        // when creating the second tank
                 .position(red_position)
-                .set_max_linear_velocity(tank_config.max_linear_vel)
-                .set_max_angular_velocity(tank_config.max_angular_vel)
-                .set_linear_damping(tank_config.linear_damping)
-                .set_angular_damping(tank_config.angular_damping)
                 .build()
         )
         .with_collider::<f32>(&tank_collider)
@@ -197,12 +189,8 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
        .with(sprites[1].clone())
        .with(blue_transform)
        .with_body::<f32, _>(
-           RigidBodyDesc::new()
+           tank_rb_desc
                .position(blue_position)
-               .set_max_linear_velocity(tank_config.max_linear_vel)
-               .set_max_angular_velocity(tank_config.max_angular_vel)
-               .set_linear_damping(tank_config.linear_damping)
-               .set_angular_damping(tank_config.angular_damping)
                .build()
        )
        .with_collider::<f32>(&tank_collider)

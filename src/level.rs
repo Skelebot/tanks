@@ -14,9 +14,13 @@ use specs_physics::{
 use crate::utils::mazegen::Maze;
 use crate::utils::SpriteSheetRes;
 
+// TODO: Use a config
 const CELL_WIDTH: f32 = 64.0;
 const CELL_HEIGHT: f32 = 64.0;
 const W_THICKNESS: f32 = 2.0;
+const RB_MARGIN: f32 = 0.6;
+const W_DENSITY: f32 = 200.0;
+const W_DAMPING: f32 = 5.0;
 
 pub struct MazeLevel {
     pub maze: Maze,
@@ -81,17 +85,23 @@ impl MazeLevel {
         // in pretty balanced starting positions
         self.starting_positions = [
             na::Point2::<f32>::new(
-                self.maze.start_cell.col as f32 * CELL_WIDTH + x_shift, 
-                self.maze.start_cell.row as f32 * CELL_HEIGHT + y_shift
+                self.maze.start_cell.col as f32 * CELL_WIDTH + (CELL_WIDTH * 0.5) + x_shift, 
+                self.maze.start_cell.row as f32 * CELL_HEIGHT + (CELL_HEIGHT) * 0.5 + y_shift
             ),
             na::Point2::<f32>::new(
-                self.maze.end_cell.col as f32 * CELL_WIDTH + x_shift, 
-                self.maze.end_cell.row as f32 * CELL_HEIGHT + y_shift
+                self.maze.end_cell.col as f32 * CELL_WIDTH + (CELL_WIDTH * 0.5) + x_shift, 
+                self.maze.end_cell.row as f32 * CELL_HEIGHT + (CELL_HEIGHT) * 0.5 + y_shift
             ),
         ];
 
         // position, rigid body, whether the wall is horizontal
         let mut w_pos_rb_h: Vec<(na::Isometry2<f32>, RigidBody<f32>, bool)> = Vec::new();
+
+        // The RigidBody description to be cloned for every wall
+        let mut wall_rb_desc = RigidBodyDesc::new();
+        wall_rb_desc
+            .set_linear_damping(W_DAMPING)
+            .set_angular_damping(W_DAMPING);
 
         // Determine the position and create a rigidbody for every horizontal wall
         for (y_index, h_row) in self.maze.walls_h.iter().enumerate() {
@@ -105,10 +115,8 @@ impl MazeLevel {
                         )),
                         na::UnitComplex::new(0.0)
                     );
-                    //Create the rigid body
-                    let rb = RigidBodyDesc::new()
-                        .position(pos)
-                        .build();
+                    // Create the RigidBody
+                    let rb = wall_rb_desc.clone().position(pos).build();
 
                     w_pos_rb_h.push((pos, rb, true));
                 }
@@ -127,10 +135,8 @@ impl MazeLevel {
                         )),
                         na::UnitComplex::new(0.0)
                     );
-                    //Create the rigid body
-                    let rb = RigidBodyDesc::new()
-                        .position(pos)
-                        .build();
+                    //Create the RigidBody
+                    let rb = wall_rb_desc.clone().position(pos).build();
 
                     w_pos_rb_h.push((pos, rb, false));
                 }
@@ -153,21 +159,22 @@ impl MazeLevel {
                 0.5
             );
 
-            let wall_collider = if horizontal {
-                ColliderDesc::new(ShapeHandle::new(
-                    Cuboid::new(na::Vector2::new(
-                        CELL_WIDTH * 0.5,
-                        W_THICKNESS * 0.5,
-                    ))
-                )).density(2000.0)
-            } else {
-                ColliderDesc::new(ShapeHandle::new(
-                    Cuboid::new(na::Vector2::new(
-                        W_THICKNESS * 0.5,
-                        CELL_HEIGHT * 0.5
-                    ))
-                )).density(2000.0)
-            };
+            let wall_collider = 
+                if horizontal {
+                    ColliderDesc::new(ShapeHandle::new(
+                        Cuboid::new(na::Vector2::new(
+                            CELL_WIDTH * 0.5 - RB_MARGIN,
+                            W_THICKNESS * 0.5,
+                        ))
+                    )).density(W_DENSITY)
+                } else {
+                    ColliderDesc::new(ShapeHandle::new(
+                        Cuboid::new(na::Vector2::new(
+                            W_THICKNESS * 0.5,
+                            CELL_HEIGHT * 0.5 - RB_MARGIN
+                        ))
+                    )).density(W_DENSITY)
+                };
 
             // Create the entity
             let entity_builder = entities

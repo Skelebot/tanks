@@ -1,4 +1,4 @@
-# tanks2
+# HoldIT tanks
 
 ## How to run
 

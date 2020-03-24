@@ -26,13 +26,14 @@ pub struct Maze {
     pub walls_v: Vec<Vec<bool>>,   //vertical walls existing/removed
     pub start_cell: Cell,
     pub end_cell: Cell,
-    //Thread_rng is not Send+Sync, so we couldn't use Maze in resources
-    //thread_rng: ThreadRng,                  //Random numbers generator
+    // Thread_rng is not Send+Sync, so we couldn't use Maze as a Resource
+    // because for some reason random number generators can't be safely sent between threads
+    // thread_rng: ThreadRng,                  //Random numbers generator
 }
  
 impl Maze {
  
-    ///Inits the maze, with all the cells unvisited and all the walls active
+    /// Initializes the maze, with all the cells unvisited and all the walls active
     pub fn new(width: usize, height: usize) -> Maze {
         Maze { 
             width: width,
@@ -45,7 +46,7 @@ impl Maze {
         }
     }
 
-    ///Reset the maze
+    /// Reset the maze
     pub fn reset(&mut self) {
         self.cells = vec![vec![true; self.height]; self.width];
         self.walls_h = vec![vec![true; self.width]; self.height + 1];
@@ -54,15 +55,13 @@ impl Maze {
         self.end_cell = Cell::default();
     }
  
-    ///(Randomly) chooses the starting cell
+    /// Randomly chooses the starting cell
     fn first(&mut self) -> Cell {
         let mut thread_rng = thread_rng();
-        let first = Cell::from(thread_rng.gen_range(0, self.width), thread_rng.gen_range(0, self.height));
-        self.start_cell = first; 
-        return first;
+        Cell::from(thread_rng.gen_range(0, self.width), thread_rng.gen_range(0, self.height))
     }
  
-    ///Opens the enter and exit doors
+    /// Opens the enter and exit doors (unused, because we want our maze closed)
     #[allow(unused)]
     pub fn open_doors(&mut self) {
         let mut thread_rng = thread_rng();
@@ -79,7 +78,7 @@ impl Maze {
         }
     }
  
-    ///Removes a wall between the two Cell arguments
+    /// Removes a wall between the two Cell arguments
     fn remove_wall(&mut self, cell1: &Cell, cell2: &Cell) {
         if cell1.row == cell2.row {
             self.walls_v[cell1.row][if cell1.col > cell2.col { cell1.col } else { cell2.col }] = false;
@@ -88,7 +87,7 @@ impl Maze {
         };
     }
  
-    ///Returns a random non-visited neighbor of the Cell passed as argument
+    /// Returns a random non-visited neighbor of the Cell passed as argument
     fn neighbor(&mut self, cell: &Cell) -> Option<Cell> {
         let mut thread_rng = thread_rng();
         self.cells[cell.col][cell.row] = false;
@@ -106,7 +105,7 @@ impl Maze {
         }
     }
  
-    ///Builds the maze (runs the Depth-first search algorithm)
+    /// Builds the maze (runs the Depth-first search algorithm)
     pub fn build(&mut self) {
         let mut cell_stack: Vec<Cell> = Vec::new();
         let mut next = self.first();
@@ -117,15 +116,18 @@ impl Maze {
             }
             match cell_stack.pop() {
                 Some(cell) => next = cell,
-                None => {
-                    self.end_cell = next;
-                    break;
-                },
+                None => break
             }
         }
+        // Set the start and end cells  - the opposite corners of the maze
+        // We know that with the depth-first search generation alghoritm
+        // every cell in the maze can be reached, so we can even choose them
+        // randomly, but choosing opposite corners is much more balanced
+        self.start_cell = Cell::from(0, 0);
+        self.end_cell = Cell::from(self.width - 1, self.height - 1);
     }
  
-    ///Displays a wall
+    /// Displays a wall
     fn paint_wall(h_wall: bool, active: bool) {
         if h_wall {
             print!("{}", if active { "+---" } else { "+   " });
@@ -134,12 +136,12 @@ impl Maze {
         }
     }
  
-    ///Displays a final wall for a row
+    /// Displays a final wall for a row
     fn paint_close_wall(h_wall: bool) {
         if h_wall { println!("+") } else { println!() }
     }
  
-    ///Displays a whole row of walls
+    /// Displays a whole row of walls
     fn paint_row(&self, h_walls: bool, index: usize) {
         let iter = if h_walls { self.walls_h[index].iter() } else { self.walls_v[index].iter() };
         for &wall in iter {
@@ -148,7 +150,7 @@ impl Maze {
         Maze::paint_close_wall(h_walls);
     } 
  
-    ///Paints the maze
+    /// Paints the maze
     #[allow(unused)]
     pub fn paint(&self) {
         for i in 0 .. self.width {
