@@ -10,7 +10,7 @@ serde = "1.0.105"
 rand = "0.7.3"
 
 [dependencies.specs-physics]
-git = "https://github.com/distransient/specs-physics/"
+git = "https://github.com/distransient/specs-physics.git"
 branch = "0.4.0"
 default-features = false
 features=["dim2", "amethyst"]

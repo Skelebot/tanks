@@ -1,6 +1,6 @@
 use amethyst::{
     prelude::*,
-    ecs::{Entity, Entities, Read, WriteStorage},
+    ecs::{Entities, Read, WriteStorage, ReadStorage, Join, Entity},
     core::math as na,
     core::Transform,
     renderer::SpriteRender,
@@ -9,10 +9,14 @@ use amethyst::{
 use specs_physics::{
     ncollide::shape::{Cuboid, ShapeHandle},
     nphysics::object::{ColliderDesc, RigidBody, RigidBodyDesc, BodyPartHandle},
-    BodyComponent, ColliderComponent
+    BodyComponent, ColliderComponent,
+    colliders::ColliderSet,
+    bodies::BodySet,
 };
 use crate::utils::mazegen::Maze;
 use crate::utils::SpriteSheetRes;
+use crate::markers::TempMarker;
+use crate::tank::Tank;
 
 // TODO: Use a config
 const CELL_WIDTH: f32 = 64.0;
@@ -24,10 +28,19 @@ const W_DAMPING: f32 = 5.0;
 
 pub struct MazeLevel {
     pub maze: Maze,
-    wall_entities: Vec<Entity>,
     pub starting_positions: [na::Point2<f32>; 2],
+    pub should_be_reset: bool,
 }
-
+impl Default for MazeLevel {
+    //TODO: Fix this
+    fn default() -> Self {
+        MazeLevel {
+            maze: Maze::new(4, 4),
+            starting_positions: [na::Point::origin(); 2],
+            should_be_reset: false
+        }
+    }
+}
 impl MazeLevel {
 
     pub fn new(world: &mut World, dimensions: &ScreenDimensions, width: usize, height: usize) -> Self {
@@ -36,18 +49,19 @@ impl MazeLevel {
         
         let mut level = MazeLevel {
             maze: maze,
-            wall_entities: Vec::new(),
-            starting_positions: [na::Point::origin(); 2]
+            starting_positions: [na::Point::origin(); 2],
+            should_be_reset: false,
         };
 
         //Actually create wall entities
         level.rebuild(
-            world.entities(),
-            world.system_data(),
-            world.system_data(),
-            world.system_data(),
-            world.system_data(),
-            world.system_data(),
+            &world.entities(),
+            &world.system_data(),
+            &mut world.system_data(),
+            &mut world.system_data(),
+            &mut world.system_data(),
+            &mut world.system_data(),
+            &mut world.system_data(),
             dimensions
         );
 
@@ -56,12 +70,13 @@ impl MazeLevel {
 
     pub fn rebuild(
         &mut self, 
-        entities: Entities, 
-        ss_handle: Read<SpriteSheetRes>,
-        mut sprite_renders: WriteStorage<SpriteRender>,
-        mut transforms: WriteStorage<Transform>,
-        mut bodies: WriteStorage<BodyComponent<f32>>,
-        mut colliders: WriteStorage<ColliderComponent<f32>>,
+        entities: &Entities, 
+        ss_handle: &Read<SpriteSheetRes>,
+        mut sprite_renders: &mut WriteStorage<SpriteRender>,
+        mut transforms: &mut WriteStorage<Transform>,
+        mut bodies: &mut WriteStorage<BodyComponent<f32>>,
+        mut colliders: &mut WriteStorage<ColliderComponent<f32>>,
+        mut temp_markers: &mut WriteStorage<TempMarker>,
         screen_dimensions: &ScreenDimensions,
      ) {
 
@@ -70,13 +85,8 @@ impl MazeLevel {
         let x_shift = (screen_dimensions.width() / 2.0) - ((self.maze.width as f32 * CELL_WIDTH) / 2.0);
         let y_shift = (screen_dimensions.height() / 2.0) - ((self.maze.height as f32 * CELL_HEIGHT) / 2.0);
 
-        //Remove all existing wall entities (if any)
-        for entity in self.wall_entities.iter() {
-            entities.delete(*entity).expect("Cannot remove a nonexistent wall");
-        }
-        self.wall_entities.clear();
-
-        //Reset and regenerate the maze
+        // Every wall entity has a TempMarker Component, so it will be removed every level change
+        // Reset and regenerate the maze
         self.maze.reset();
         self.maze.build();
 
@@ -143,7 +153,7 @@ impl MazeLevel {
             }
         }
 
-        for (pos, rb, horizontal) in w_pos_rb_h.drain(..) {
+        for (index, (pos, rb, horizontal)) in w_pos_rb_h.drain(..).enumerate() {
             // Create Physics for the entity
             // Create a renderable sprite
             let sprite_render = SpriteRender {
@@ -166,14 +176,18 @@ impl MazeLevel {
                             CELL_WIDTH * 0.5 - RB_MARGIN,
                             W_THICKNESS * 0.5,
                         ))
-                    )).density(W_DENSITY)
+                    ))
+                    .user_data(format!("wall_h_{}", index))
+                    .density(W_DENSITY)
                 } else {
                     ColliderDesc::new(ShapeHandle::new(
                         Cuboid::new(na::Vector2::new(
                             W_THICKNESS * 0.5,
                             CELL_HEIGHT * 0.5 - RB_MARGIN
                         ))
-                    )).density(W_DENSITY)
+                    ))
+                    .user_data(format!("wall_v_{}", index))
+                    .density(W_DENSITY)
                 };
 
             // Create the entity
@@ -181,17 +195,57 @@ impl MazeLevel {
                 .build_entity()
                 .with(sprite_render, &mut sprite_renders)
                 .with(wall_transform, &mut transforms)
+                .with(TempMarker, &mut temp_markers)
                 .with(BodyComponent::new(rb), &mut bodies);
 
             let collider_component = ColliderComponent(
                 wall_collider.build(BodyPartHandle(entity_builder.entity, 0))
             );
 
-            let entity = entity_builder
+            // Build the final entity
+            entity_builder
                 .with(collider_component, &mut colliders)
                 .build();
+        }
+    }
 
-            self.wall_entities.push(entity);
+    pub fn reset_level(
+        &mut self,
+        entities: &Entities,
+        ss_handle: &Read<SpriteSheetRes>,
+        sprite_renders: &mut WriteStorage<SpriteRender>,
+        transforms: &mut WriteStorage<Transform>,
+        bodies: &mut BodySet<f32>,
+        colliders: &mut ColliderSet<f32>,
+        screen_dimensions: &ScreenDimensions,
+        mut temp_markers: WriteStorage<TempMarker>,
+        tanks: &ReadStorage<Tank>,
+    ) {
+        let mut bodies_to_remove = Vec::<Entity>::new();
+        // Remove colliders belonging to entities with a TempMarker Component
+        for (collider_component, _) in (&mut colliders.storage, &mut temp_markers).join() {
+            use std::ops::Deref;
+            let collider = collider_component.deref().body().clone();
+            bodies_to_remove.push(collider);
+        }
+        for body in bodies_to_remove.drain(..) {
+            use specs_physics::nphysics::object::ColliderSet;
+            colliders.remove(body);
+        }
+        // Remove all entities with a TempMarker Component (like projectiles or debris)
+        for (entity, _) in (entities, &mut temp_markers).join() {
+            entities.delete(entity).expect("Couldn't remove the entity");
+        }
+        // Rebuild the maze
+        self.rebuild(entities, ss_handle, sprite_renders, transforms, &mut bodies.storage, &mut colliders.storage, &mut temp_markers, screen_dimensions);
+        // Move the tanks to new starting positions
+        for (index, (_, body)) in (tanks, &mut bodies.storage).join().enumerate() {
+            let body = body.downcast_mut::<RigidBody<f32>>().unwrap();
+            body.set_position(na::Isometry2::new(
+                // TODO: Why can't we easily convert between Point2 and Vector2 here?
+                na::Vector2::new(self.starting_positions[index].x, self.starting_positions[index].y),
+                0.0
+            ));
         }
     }
 }

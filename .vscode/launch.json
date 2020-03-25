@@ -7,15 +7,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'tanks2'",
+            "name": "Debug executable 'tanks'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=tanks2",
-                    "--package=tanks2"
+                    "--bin=tanks",
+                    "--package=tanks"
                 ],
                 "filter": {
-                    "name": "tanks2",
+                    "name": "tanks",
                     "kind": "bin"
                 }
             },
@@ -25,16 +25,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'tanks2'",
+            "name": "Debug unit tests in executable 'tanks'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=tanks2",
-                    "--package=tanks2"
+                    "--bin=tanks",
+                    "--package=tanks"
                 ],
                 "filter": {
-                    "name": "tanks2",
+                    "name": "tanks",
                     "kind": "bin"
                 }
             },

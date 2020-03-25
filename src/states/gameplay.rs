@@ -4,7 +4,7 @@ use amethyst::{
         math as na,
         transform::Transform,
     },
-    input::{is_close_requested, is_key_down, VirtualKeyCode},
+    input::{is_close_requested, is_key_down, VirtualKeyCode, get_key, ElementState},
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     window::ScreenDimensions,
@@ -20,11 +20,15 @@ use crate::utils::SpriteSheetRes;
 use crate::level::MazeLevel;
 use crate::config::TankConfig;
 use crate::tank::{Tank, Team};
+use crate::markers::TempMarker;
 
-pub struct GameplayState;
+pub struct GameplayState {
+    pub maze_r: bool,
+}
 impl SimpleState for GameplayState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
+        world.register::<TempMarker>();
 
         // Get the screen dimensions so we can initialize the camera and
         // place our sprites correctly later. We'll clone this since we'll
@@ -52,12 +56,19 @@ impl SimpleState for GameplayState {
     // Exit the state if window close was requested,
     // or if user is holding the ESC key
     // TODO: Handle window resizing (reposition the camera, players and maze)
-    fn handle_event(&mut self, mut _data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
+    fn handle_event(&mut self, data: StateData<'_, GameData<'_, '_>>, event: StateEvent) -> SimpleTrans {
         if let StateEvent::Window(event) = &event {
             if is_close_requested(&event) || is_key_down(&event, VirtualKeyCode::Escape) {
                 return Trans::Quit
             }
+            if let Some(event) = get_key(&event) {
+                if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed && !self.maze_r {
+                    let mut level = data.world.write_resource::<MazeLevel>();
+                    level.should_be_reset = true;
+                }
+            }
         }
+        
         Trans::None
     }
 }
@@ -158,9 +169,6 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
         tank_config.size_y as f32 * 0.5,
     )));
 
-    // Create the collider to be cloned for both tanks
-    let tank_collider = ColliderDesc::new(tank_shape).density(tank_config.density);
-
     // Create the RigidBody description to be cloned for both tanks
     let mut tank_rb_desc = RigidBodyDesc::new();
     tank_rb_desc
@@ -180,7 +188,12 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
                 .position(red_position)
                 .build()
         )
-        .with_collider::<f32>(&tank_collider)
+        .with_collider::<f32>(
+            &ColliderDesc::new(
+                tank_shape.clone()
+            )
+            .user_data("red_tank".to_string())
+            .density(tank_config.density))
         .build();
     
     // Create the blue tank
@@ -193,6 +206,25 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
                .position(blue_position)
                .build()
        )
-       .with_collider::<f32>(&tank_collider)
+        .with_collider::<f32>(
+            &ColliderDesc::new(
+                tank_shape.clone()
+            )
+            .user_data("blue_tank".to_string())
+            .density(tank_config.density))
        .build();
+
+       // Reset the level
+       // TODO: This is completely not needed
+       // world.fetch_mut::<MazeLevel>().reset_level(
+       //     world.system_data(),
+       //     world.system_data(),
+       //     world.system_data(),
+       //     world.system_data(),
+       //     world.system_data(),
+       //     world.system_data(),
+       //     &world.read_resource::<ScreenDimensions>(),
+       //     world.system_data(),
+       //     world.system_data()
+       // );
 }
