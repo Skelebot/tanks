@@ -1,19 +1,16 @@
+use nphysics2d as np;
+use nalgebra as na;
 use amethyst::{
     core::{
-        math as na,
         timing::Time,
     },
     ecs::{
-        System, Read, ReadStorage, WriteStorage, Join
+        System, Read, ReadStorage, WriteExpect, Join
     },
     input::{InputHandler, StringBindings},
 };
-use specs_physics::{
-    nphysics::object::RigidBody,
-    nphysics::algebra::Velocity2,
-    BodyComponent,
-};
 use crate::tank::{Tank, Team};
+use crate::physics;
 use crate::config::TankConfig;
 
 pub struct TankSystem;
@@ -23,7 +20,8 @@ impl<'s> System<'s> for TankSystem {
         ReadStorage<'s, Tank>,
         Read<'s, InputHandler<StringBindings>>,
         Read<'s, TankConfig>,
-        WriteStorage<'s, BodyComponent<f32>>,
+        ReadStorage<'s, physics::Body>,
+        WriteExpect<'s, physics::Physics>,
         Read<'s, Time>
     );
 
@@ -33,12 +31,12 @@ impl<'s> System<'s> for TankSystem {
             tanks,
             input,
             tank_config,
-            mut bodies,
+            bodies,
+            mut physics,
             _time
         ): Self::SystemData,
     ) {
-        for (tank, body) in (&tanks, &mut bodies).join() {
-            let body = body.downcast_mut::<RigidBody<f32>>().unwrap();
+        for (tank, body) in (&tanks, &bodies).join() {
             // TODO: Parametric input axis names and teams for any arbitrary number of players
             let (mov_forward, mov_side) = match tank.team {
                 Team::Red => (
@@ -62,17 +60,18 @@ impl<'s> System<'s> for TankSystem {
                 movement.x += side;
             }
 
+            let rb = physics.get_rigid_body_mut(body.handle).unwrap();
+
             // Movement rotated relative to the tank's front
-            let mov_rel = body.position().rotation
-                * na::Vector2::new(0.0, movement.y * tank_config.linear_accel);
+            let mov_rel = rb.position().rotation * na::Vector2::new(0.0, movement.y * tank_config.linear_accel);
 
             // TODO: Delta frame time scaling
             // Push the tank forward and apply angular velocity
-            body.set_velocity(
-                * body.velocity() +
-                Velocity2::new(
+            rb.set_velocity(
+                * rb.velocity() +
+                np::math::Velocity::new(
                     na::Vector2::new(mov_rel.x, mov_rel.y),
-                    movement.x * tank_config.angular_accel
+                    -movement.x * tank_config.angular_accel
                 )
             );
         }

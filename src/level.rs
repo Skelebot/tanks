@@ -1,30 +1,26 @@
+use nphysics2d as np;
+use ncollide2d as nc;
+use nalgebra as na;
 use amethyst::{
     prelude::*,
-    ecs::{Entities, Read, WriteStorage, ReadStorage, Join, Entity},
-    core::math as na,
+    ecs::{Entities, Read, WriteStorage, ReadStorage, Join, WriteExpect},
     core::Transform,
     renderer::SpriteRender,
     window::ScreenDimensions,
-};
-use specs_physics::{
-    ncollide::shape::{Cuboid, ShapeHandle},
-    nphysics::object::{ColliderDesc, RigidBody, RigidBodyDesc, BodyPartHandle},
-    BodyComponent, ColliderComponent,
-    colliders::ColliderSet,
-    bodies::BodySet,
 };
 use crate::utils::mazegen::Maze;
 use crate::utils::SpriteSheetRes;
 use crate::markers::TempMarker;
 use crate::tank::Tank;
+use crate::physics;
 
 // TODO: Use a config
 const CELL_WIDTH: f32 = 64.0;
 const CELL_HEIGHT: f32 = 64.0;
 const W_THICKNESS: f32 = 2.0;
-const RB_MARGIN: f32 = 0.6;
-const W_DENSITY: f32 = 200.0;
-const W_DAMPING: f32 = 5.0;
+const RB_MARGIN: f32 = 0.8;
+const W_DENSITY: f32 = 8.0;
+const W_DAMPING: f32 = 3.5;
 
 pub struct MazeLevel {
     pub maze: Maze,
@@ -62,6 +58,7 @@ impl MazeLevel {
             &mut world.system_data(),
             &mut world.system_data(),
             &mut world.system_data(),
+            &mut world.system_data(),
             dimensions
         );
 
@@ -74,8 +71,9 @@ impl MazeLevel {
         ss_handle: &Read<SpriteSheetRes>,
         mut sprite_renders: &mut WriteStorage<SpriteRender>,
         mut transforms: &mut WriteStorage<Transform>,
-        mut bodies: &mut WriteStorage<BodyComponent<f32>>,
-        mut colliders: &mut WriteStorage<ColliderComponent<f32>>,
+        physics: &mut WriteExpect<physics::Physics>,
+        mut bodies: &mut WriteStorage<physics::Body>,
+        mut colliders: &mut WriteStorage<physics::Collider>,
         mut temp_markers: &mut WriteStorage<TempMarker>,
         screen_dimensions: &ScreenDimensions,
      ) {
@@ -104,11 +102,11 @@ impl MazeLevel {
             ),
         ];
 
-        // position, rigid body, whether the wall is horizontal
-        let mut w_pos_rb_h: Vec<(na::Isometry2<f32>, RigidBody<f32>, bool)> = Vec::new();
+        // position, rigid body, whether the wall is horizontal, whether the wall is an outer wall
+        let mut w_pos_rb_h: Vec<(na::Isometry2<f32>, np::object::RigidBody<f32>, bool)> = Vec::new();
 
         // The RigidBody description to be cloned for every wall
-        let mut wall_rb_desc = RigidBodyDesc::new();
+        let mut wall_rb_desc = np::object::RigidBodyDesc::new();
         wall_rb_desc
             .set_linear_damping(W_DAMPING)
             .set_angular_damping(W_DAMPING);
@@ -125,8 +123,15 @@ impl MazeLevel {
                         )),
                         na::UnitComplex::new(0.0)
                     );
+
+                    let outer = if y_index == 0 ||
+                        y_index == self.maze.height || x_index == self.maze.width 
+                            { true }
+                        else { false };
+
                     // Create the RigidBody
-                    let rb = wall_rb_desc.clone().position(pos).build();
+                    let rb = if outer { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Static).build() }
+                                 else { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Dynamic).build() };
 
                     w_pos_rb_h.push((pos, rb, true));
                 }
@@ -145,8 +150,15 @@ impl MazeLevel {
                         )),
                         na::UnitComplex::new(0.0)
                     );
-                    //Create the RigidBody
-                    let rb = wall_rb_desc.clone().position(pos).build();
+                    
+                    let outer = if x_index == 0 ||
+                        y_index == self.maze.height || x_index == self.maze.width 
+                            { true }
+                        else { false };
+
+                    // Create the RigidBody
+                    let rb = if outer { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Static).build() }
+                                 else { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Dynamic).build() };
 
                     w_pos_rb_h.push((pos, rb, false));
                 }
@@ -171,8 +183,8 @@ impl MazeLevel {
 
             let wall_collider = 
                 if horizontal {
-                    ColliderDesc::new(ShapeHandle::new(
-                        Cuboid::new(na::Vector2::new(
+                    np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
+                        nc::shape::Cuboid::new(na::Vector2::new(
                             CELL_WIDTH * 0.5 - RB_MARGIN,
                             W_THICKNESS * 0.5,
                         ))
@@ -180,8 +192,8 @@ impl MazeLevel {
                     .user_data(format!("wall_h_{}", index))
                     .density(W_DENSITY)
                 } else {
-                    ColliderDesc::new(ShapeHandle::new(
-                        Cuboid::new(na::Vector2::new(
+                    np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
+                        nc::shape::Cuboid::new(na::Vector2::new(
                             W_THICKNESS * 0.5,
                             CELL_HEIGHT * 0.5 - RB_MARGIN
                         ))
@@ -190,21 +202,19 @@ impl MazeLevel {
                     .density(W_DENSITY)
                 };
 
+            let wall_body = physics::Body { handle: physics.add_rigid_body(rb) };
+            let wall_collider = physics::Collider { 
+                handle: physics.add_collider(wall_collider.build(np::object::BodyPartHandle(wall_body.handle.clone(), 0))) 
+            };
+
             // Create the entity
-            let entity_builder = entities
+            entities
                 .build_entity()
                 .with(sprite_render, &mut sprite_renders)
                 .with(wall_transform, &mut transforms)
                 .with(TempMarker, &mut temp_markers)
-                .with(BodyComponent::new(rb), &mut bodies);
-
-            let collider_component = ColliderComponent(
-                wall_collider.build(BodyPartHandle(entity_builder.entity, 0))
-            );
-
-            // Build the final entity
-            entity_builder
-                .with(collider_component, &mut colliders)
+                .with(wall_body, &mut bodies)
+                .with(wall_collider, &mut colliders)
                 .build();
         }
     }
@@ -215,32 +225,27 @@ impl MazeLevel {
         ss_handle: &Read<SpriteSheetRes>,
         sprite_renders: &mut WriteStorage<SpriteRender>,
         transforms: &mut WriteStorage<Transform>,
-        bodies: &mut BodySet<f32>,
-        colliders: &mut ColliderSet<f32>,
+        mut physics: &mut WriteExpect<physics::Physics>,
+        mut bodies: WriteStorage<physics::Body>,
+        mut colliders: WriteStorage<physics::Collider>,
         screen_dimensions: &ScreenDimensions,
         mut temp_markers: WriteStorage<TempMarker>,
         tanks: &ReadStorage<Tank>,
     ) {
-        let mut bodies_to_remove = Vec::<Entity>::new();
-        // Remove colliders belonging to entities with a TempMarker Component
-        for (collider_component, _) in (&mut colliders.storage, &mut temp_markers).join() {
-            use std::ops::Deref;
-            let collider = collider_component.deref().body().clone();
-            bodies_to_remove.push(collider);
+        // Remove bodies and colliders belonging to entities with a TempMarker Component
+        for (body, collider, _) in (&mut bodies, &mut colliders, &temp_markers).join() {
+            physics.remove_collider(collider.handle);
+            physics.remove_rigid_body(body.handle);
         }
-        for body in bodies_to_remove.drain(..) {
-            use specs_physics::nphysics::object::ColliderSet;
-            colliders.remove(body);
-        }
-        // Remove all entities with a TempMarker Component (like projectiles or debris)
+        // Remove all entities with a TempMarker Component (like projectiles)
         for (entity, _) in (entities, &mut temp_markers).join() {
             entities.delete(entity).expect("Couldn't remove the entity");
         }
         // Rebuild the maze
-        self.rebuild(entities, ss_handle, sprite_renders, transforms, &mut bodies.storage, &mut colliders.storage, &mut temp_markers, screen_dimensions);
+        self.rebuild(entities, ss_handle, sprite_renders, transforms, &mut physics, &mut bodies, &mut colliders, &mut temp_markers, screen_dimensions);
         // Move the tanks to new starting positions
-        for (index, (_, body)) in (tanks, &mut bodies.storage).join().enumerate() {
-            let body = body.downcast_mut::<RigidBody<f32>>().unwrap();
+        for (index, (_, body)) in (tanks, &mut bodies).join().enumerate() {
+            let body = physics.get_rigid_body_mut(body.handle).unwrap();
             body.set_position(na::Isometry2::new(
                 // TODO: Why can't we easily convert between Point2 and Vector2 here?
                 na::Vector2::new(self.starting_positions[index].x, self.starting_positions[index].y),

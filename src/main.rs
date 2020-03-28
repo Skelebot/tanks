@@ -1,5 +1,8 @@
+extern crate nphysics2d;
+extern crate ncollide2d;
+extern crate nalgebra;
 use amethyst::{
-    core::transform::{TransformBundle, Transform},
+    core::transform::TransformBundle,
     core::frame_limiter::FrameRateLimitStrategy,
     prelude::*,
     renderer::{
@@ -10,10 +13,6 @@ use amethyst::{
     input::{InputBundle, StringBindings},
     utils::application_root_dir,
 };
-use specs_physics::{
-    nalgebra as na,
-    PhysicsBundle
-};
 use std::time::Duration;
 
 mod states;
@@ -23,6 +22,9 @@ mod config;
 mod tank;
 mod systems;
 mod markers;
+
+mod physics;
+
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());
 
@@ -33,11 +35,6 @@ fn main() -> amethyst::Result<()> {
     let display_config_path = config.join("display.ron");
     let tank_config = config::TankConfig::load(&config.join("tank.ron")).expect("Failed to load TankConfig");
 
-    let physics_bundle = PhysicsBundle::<f32, Transform>::new(
-        na::Vector::y() * 0.0,
-         &["level_system"]
-    ).with_fixed_stepper(30);
-
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
 
@@ -46,7 +43,8 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(input_bundle)?
         .with(systems::TankSystem, "tank_system", &["input_system"])
         .with(systems::LevelSystem, "level_system", &["tank_system"])
-        .with_bundle(physics_bundle)?
+        .with(physics::StepperSystem, "stepper_system", &["level_system"])
+        .with(physics::PTTSystem, "physics_to_transform_system", &["stepper_system"])
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new()
                 .with_plugin(

@@ -1,7 +1,9 @@
+use nphysics2d as np;
+use ncollide2d as nc;
+use nalgebra as na;
 use amethyst::{
     assets::{AssetStorage, Handle, Loader},
     core::{
-        math as na,
         transform::Transform,
     },
     input::{is_close_requested, is_key_down, VirtualKeyCode, get_key, ElementState},
@@ -9,18 +11,13 @@ use amethyst::{
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     window::ScreenDimensions,
 };
-use specs_physics::{
-    ncollide::shape::{ShapeHandle, Cuboid},
-    nphysics::{
-        object::{ColliderDesc, RigidBodyDesc}
-    },
-    EntityBuilderExt
-};
+
 use crate::utils::SpriteSheetRes;
 use crate::level::MazeLevel;
 use crate::config::TankConfig;
 use crate::tank::{Tank, Team};
-use crate::markers::TempMarker;
+
+use crate::physics;
 
 pub struct GameplayState {
     pub maze_r: bool,
@@ -28,7 +25,7 @@ pub struct GameplayState {
 impl SimpleState for GameplayState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
-        world.register::<TempMarker>();
+        world.insert(physics::Physics::new());
 
         // Get the screen dimensions so we can initialize the camera and
         // place our sprites correctly later. We'll clone this since we'll
@@ -141,7 +138,13 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     // Set tanks' transforms to level's starting positions
     // Red tank's Transform
     let mut red_transform = Transform::default();
-    red_transform.set_translation(starting_positions[0].into());
+    red_transform.set_translation(
+        amethyst::core::math::Vector3::new(
+            starting_positions[0].x,
+            starting_positions[0].y,
+            1.0
+        )
+    );
     // Amethyst's Transform is in 3D, to create a 2D RigidBody we have to determine it's 2D translation + rotation
     let red_position: na::Isometry2<f32> = 
         na::Isometry2::new(
@@ -151,7 +154,13 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
 
     // Blue tank's Transform
     let mut blue_transform = Transform::default();
-    blue_transform.set_translation(starting_positions[1].into());
+    blue_transform.set_translation(
+        amethyst::core::math::Vector3::new(
+            starting_positions[1].x,
+            starting_positions[1].y,
+            1.0
+        )
+    );
     // Amethyst's Transform is in 3D, to create a 2D RigidBody we have to determine it's 2D translation + rotation
     let blue_position: na::Isometry2<f32> = 
         na::Isometry2::new(
@@ -164,67 +173,62 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     let tank_config = (*world.read_resource::<TankConfig>()).clone();
 
     // Create the shape for tanks
-    let tank_shape = ShapeHandle::new(Cuboid::new(na::Vector2::new(
+    let tank_shape = nc::shape::ShapeHandle::new(nc::shape::Cuboid::new(na::Vector2::new(
         tank_config.size_x as f32 * 0.5,
         tank_config.size_y as f32 * 0.5,
     )));
 
+    let tank_col_desc = np::object::ColliderDesc::new(tank_shape)
+        .density(tank_config.density);
+
     // Create the RigidBody description to be cloned for both tanks
-    let mut tank_rb_desc = RigidBodyDesc::new();
+    let mut tank_rb_desc = np::object::RigidBodyDesc::new();
     tank_rb_desc
         .set_max_linear_velocity(tank_config.max_linear_vel)
         .set_max_angular_velocity(tank_config.max_angular_vel)
         .set_linear_damping(tank_config.linear_damping)
         .set_angular_damping(tank_config.angular_damping);
 
+    let red_body = physics::Body {
+        handle: world.fetch_mut::<physics::Physics>().add_rigid_body(
+            tank_rb_desc.clone()
+                .position(red_position)
+                .build()
+        )
+    };
+    let red_collider = physics::Collider {
+        handle: world.fetch_mut::<physics::Physics>().add_collider(
+            tank_col_desc.build(np::object::BodyPartHandle(red_body.handle.clone(), 0))
+        )
+    };
+    let blue_body = physics::Body {
+        handle: world.fetch_mut::<physics::Physics>().add_rigid_body(
+            tank_rb_desc
+                .position(blue_position)
+                .build()
+        )
+    };
+    let blue_collider = physics::Collider {
+        handle: world.fetch_mut::<physics::Physics>().add_collider(
+            tank_col_desc.build(np::object::BodyPartHandle(blue_body.handle.clone(), 0))
+        )
+    };
+
     // Create the red tank
     world.create_entity()
         .with(Tank::new(Team::Red))
         .with(sprites[0].clone())
+        .with(red_body)
+        .with(red_collider)
         .with(red_transform)
-        .with_body::<f32, _>(
-            tank_rb_desc.clone()  // Cloned, because we have to use the same variable
-                                        // when creating the second tank
-                .position(red_position)
-                .build()
-        )
-        .with_collider::<f32>(
-            &ColliderDesc::new(
-                tank_shape.clone()
-            )
-            .user_data("red_tank".to_string())
-            .density(tank_config.density))
         .build();
     
     // Create the blue tank
     world.create_entity()
        .with(Tank::new(Team::Blue))
        .with(sprites[1].clone())
+       .with(blue_body)
+       .with(blue_collider)
        .with(blue_transform)
-       .with_body::<f32, _>(
-           tank_rb_desc
-               .position(blue_position)
-               .build()
-       )
-        .with_collider::<f32>(
-            &ColliderDesc::new(
-                tank_shape.clone()
-            )
-            .user_data("blue_tank".to_string())
-            .density(tank_config.density))
        .build();
-
-       // Reset the level
-       // TODO: This is completely not needed
-       // world.fetch_mut::<MazeLevel>().reset_level(
-       //     world.system_data(),
-       //     world.system_data(),
-       //     world.system_data(),
-       //     world.system_data(),
-       //     world.system_data(),
-       //     world.system_data(),
-       //     &world.read_resource::<ScreenDimensions>(),
-       //     world.system_data(),
-       //     world.system_data()
-       // );
 }
