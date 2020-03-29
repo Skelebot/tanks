@@ -28,7 +28,7 @@ pub struct Maze {
     pub end_cell: Cell,
     // Thread_rng is not Send+Sync, so we couldn't use Maze as a Resource
     // because for some reason random number generators can't be safely sent between threads
-    // thread_rng: ThreadRng,                  //Random numbers generator
+    // thread_rng: ThreadRng,      //Random numbers generator
 }
  
 impl Maze {
@@ -77,6 +77,29 @@ impl Maze {
             self.walls_v[exit][self.width] = false;
         }
     }
+
+    /// Removes a few internal walls randomly
+    pub fn open_random(&mut self) {
+        let mut thread_rng = thread_rng();
+        let mut amount = thread_rng.gen_range(0, ((self.width*self.height) as f32).sqrt().floor() as usize);
+        while amount > 0 {
+            let horizontal: bool = thread_rng.gen();
+            if horizontal {
+                let x = thread_rng.gen_range(0, self.width);
+                let y = thread_rng.gen_range(1, self.height);
+                if self.walls_h[y][x] == false { amount += 1; } else {
+                    self.walls_h[y][x] = false;
+                }
+            } else {
+                let x = thread_rng.gen_range(1, self.width);
+                let y = thread_rng.gen_range(0, self.height);
+                if self.walls_v[y][x] == false { amount += 1; } else {
+                    self.walls_v[y][x] = false;
+                }
+            }
+            amount -= 1;
+        }
+    }
  
     /// Removes a wall between the two Cell arguments
     fn remove_wall(&mut self, cell1: &Cell, cell2: &Cell) {
@@ -119,6 +142,7 @@ impl Maze {
                 None => break
             }
         }
+        self.open_random();
         // Set the start and end cells  - the opposite corners of the maze
         // We know that with the depth-first search generation alghoritm
         // every cell in the maze can be reached, so we can even choose them

@@ -73,7 +73,7 @@ impl SimpleState for GameplayState {
 /// Initialize the level in the middle of the game's screen
 fn init_level(world: &mut World, dimensions: &ScreenDimensions) {
     // It's up to this function which type and what size of level we should create
-    let maze = MazeLevel::new(world, dimensions, 6, 5);
+    let maze = MazeLevel::new(world, dimensions);
     world.insert(maze);
 }
 
@@ -124,15 +124,20 @@ fn init_camera(world: &mut World, dimensions: &ScreenDimensions) {
 
 /// Create entities for both player's tanks
 fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimensions: &ScreenDimensions) {
+
+    // Fetch the config for tank's entities, it should be loaded on game data creation
+    let tank_config = (*world.read_resource::<TankConfig>()).clone();
+
     //TODO: Create a trait for levels and change to <Level> (or Box<Level>?)
     // Fetch the level's starting positions (the Level should be crated before initializing players)
     let starting_positions = (world.read_resource::<MazeLevel>().starting_positions).clone();
+
     // Create the SpriteRenders
     //TODO: Determine players' sprite numbers from a config (prefab?)
-    let sprites: Vec<SpriteRender> = (0..2)
+    let sprites: Vec<SpriteRender> = tank_config.sprite_nums.iter()
         .map(|i| SpriteRender {
             sprite_sheet: sheet_handle.clone(),
-            sprite_number: i,
+            sprite_number: *i,
         }).collect();
     
     // Set tanks' transforms to level's starting positions
@@ -167,10 +172,6 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
             na::Vector2::new(blue_transform.translation().x, blue_transform.translation().y),
             blue_transform.rotation().angle(),
         );
-
-    // Fetch the config for tank's entities, it should be loaded on game data creation
-    // TODO: Change to prefab?
-    let tank_config = (*world.read_resource::<TankConfig>()).clone();
 
     // Create the shape for tanks
     let tank_shape = nc::shape::ShapeHandle::new(nc::shape::Cuboid::new(na::Vector2::new(

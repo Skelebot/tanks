@@ -21,12 +21,6 @@ List((
       height: 6,
     ),
     (
-      x: 52,
-      y: 0,
-      width: 2,
-      height: 64,
-    ),
-    (
       x: 0,
       y: 24,
       width: 64,

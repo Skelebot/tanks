@@ -13,34 +13,20 @@ use crate::utils::SpriteSheetRes;
 use crate::markers::TempMarker;
 use crate::tank::Tank;
 use crate::physics;
-
-// TODO: Use a config
-const CELL_WIDTH: f32 = 64.0;
-const CELL_HEIGHT: f32 = 64.0;
-const W_THICKNESS: f32 = 2.0;
-const RB_MARGIN: f32 = 0.8;
-const W_DENSITY: f32 = 8.0;
-const W_DAMPING: f32 = 3.5;
+use crate::config::MazeConfig;
 
 pub struct MazeLevel {
     pub maze: Maze,
     pub starting_positions: [na::Point2<f32>; 2],
     pub should_be_reset: bool,
 }
-impl Default for MazeLevel {
-    //TODO: Fix this
-    fn default() -> Self {
-        MazeLevel {
-            maze: Maze::new(4, 4),
-            starting_positions: [na::Point::origin(); 2],
-            should_be_reset: false
-        }
-    }
-}
+
 impl MazeLevel {
 
-    pub fn new(world: &mut World, dimensions: &ScreenDimensions, width: usize, height: usize) -> Self {
-        let mut maze = Maze::new(width, height);
+    pub fn new(world: &mut World, dimensions: &ScreenDimensions) -> Self {
+        let maze_config = world.fetch::<MazeConfig>();
+
+        let mut maze = Maze::new(maze_config.maze_width, maze_config.maze_height);
         maze.build();
         
         let mut level = MazeLevel {
@@ -51,6 +37,7 @@ impl MazeLevel {
 
         //Actually create wall entities
         level.rebuild(
+            &maze_config,
             &world.entities(),
             &world.system_data(),
             &mut world.system_data(),
@@ -67,6 +54,7 @@ impl MazeLevel {
 
     pub fn rebuild(
         &mut self, 
+        maze_config: &MazeConfig,
         entities: &Entities, 
         ss_handle: &Read<SpriteSheetRes>,
         mut sprite_renders: &mut WriteStorage<SpriteRender>,
@@ -80,8 +68,8 @@ impl MazeLevel {
 
         //Determine the shift of everything so that the maze sits in the middle of the screen
         //TODO: Scaling, if the maze cannot fit on the screen
-        let x_shift = (screen_dimensions.width() / 2.0) - ((self.maze.width as f32 * CELL_WIDTH) / 2.0);
-        let y_shift = (screen_dimensions.height() / 2.0) - ((self.maze.height as f32 * CELL_HEIGHT) / 2.0);
+        let x_shift = (screen_dimensions.width() / 2.0) - ((self.maze.width as f32 * maze_config.cell_width) / 2.0);
+        let y_shift = (screen_dimensions.height() / 2.0) - ((self.maze.height as f32 * maze_config.cell_height) / 2.0);
 
         // Every wall entity has a TempMarker Component, so it will be removed every level change
         // Reset and regenerate the maze
@@ -93,23 +81,23 @@ impl MazeLevel {
         // in pretty balanced starting positions
         self.starting_positions = [
             na::Point2::<f32>::new(
-                self.maze.start_cell.col as f32 * CELL_WIDTH + (CELL_WIDTH * 0.5) + x_shift, 
-                self.maze.start_cell.row as f32 * CELL_HEIGHT + (CELL_HEIGHT) * 0.5 + y_shift
+                self.maze.start_cell.col as f32 * maze_config.cell_width + (maze_config.cell_width * 0.5) + x_shift, 
+                self.maze.start_cell.row as f32 * maze_config.cell_height + (maze_config.cell_height) * 0.5 + y_shift
             ),
             na::Point2::<f32>::new(
-                self.maze.end_cell.col as f32 * CELL_WIDTH + (CELL_WIDTH * 0.5) + x_shift, 
-                self.maze.end_cell.row as f32 * CELL_HEIGHT + (CELL_HEIGHT) * 0.5 + y_shift
+                self.maze.end_cell.col as f32 * maze_config.cell_width + (maze_config.cell_width * 0.5) + x_shift, 
+                self.maze.end_cell.row as f32 * maze_config.cell_height + (maze_config.cell_height) * 0.5 + y_shift
             ),
         ];
 
-        // position, rigid body, whether the wall is horizontal, whether the wall is an outer wall
+        // Wall position, rigid body, whether the wall is horizontal
         let mut w_pos_rb_h: Vec<(na::Isometry2<f32>, np::object::RigidBody<f32>, bool)> = Vec::new();
 
         // The RigidBody description to be cloned for every wall
         let mut wall_rb_desc = np::object::RigidBodyDesc::new();
         wall_rb_desc
-            .set_linear_damping(W_DAMPING)
-            .set_angular_damping(W_DAMPING);
+            .set_linear_damping(maze_config.w_damping)
+            .set_angular_damping(maze_config.w_damping);
 
         // Determine the position and create a rigidbody for every horizontal wall
         for (y_index, h_row) in self.maze.walls_h.iter().enumerate() {
@@ -118,8 +106,8 @@ impl MazeLevel {
                     //Determine the position
                     let pos = na::Isometry2::from_parts(
                         na::Translation::from(na::Vector2::new(
-                            (CELL_WIDTH * 0.5) + (x_index as f32 * CELL_WIDTH) + x_shift,
-                            (y_index as f32 * CELL_HEIGHT) + y_shift
+                            (maze_config.cell_width * 0.5) + (x_index as f32 * maze_config.cell_width) + x_shift,
+                            (y_index as f32 * maze_config.cell_height) + y_shift
                         )),
                         na::UnitComplex::new(0.0)
                     );
@@ -145,10 +133,10 @@ impl MazeLevel {
                     //Determine the position
                     let pos = na::Isometry2::from_parts(
                         na::Translation::from(na::Vector2::new(
-                            (x_index as f32 * CELL_WIDTH) + x_shift,
-                            (CELL_HEIGHT * 0.5) + (y_index as f32 * CELL_HEIGHT) + y_shift
+                            (x_index as f32 * maze_config.cell_width) + x_shift,
+                            (maze_config.cell_height * 0.5) + (y_index as f32 * maze_config.cell_height) + y_shift
                         )),
-                        na::UnitComplex::new(0.0)
+                        na::UnitComplex::new(90.0_f32.to_radians())
                     );
                     
                     let outer = if x_index == 0 ||
@@ -165,42 +153,39 @@ impl MazeLevel {
             }
         }
 
-        for (index, (pos, rb, horizontal)) in w_pos_rb_h.drain(..).enumerate() {
+        for (pos, rb, horizontal) in w_pos_rb_h.drain(..) {
             // Create Physics for the entity
             // Create a renderable sprite
             let sprite_render = SpriteRender {
                 sprite_sheet: ss_handle.handle.as_ref().expect("SpriteSheet is None").clone(),
-                sprite_number: if horizontal { 4 } else { 3 },   //TODO: Change to use a config
+                sprite_number: maze_config.sprite_num
             };
 
-            // Sprite's position
+            // Sprite's transform
             let mut wall_transform = Transform::default();
             wall_transform.set_translation_xyz(
                 pos.translation.vector.x,
                 pos.translation.vector.y,
                 0.5
             );
+            wall_transform.set_rotation_2d(-pos.rotation.angle());
+
+            //Scale the wall's sprite if it's size doesn't match the cell size
+            let width_scale = maze_config.cell_width / maze_config.sprite_width;
+            let height_scale = maze_config.cell_height / maze_config.sprite_width;
+            wall_transform.set_scale(amethyst::core::math::Vector3::new(
+                if horizontal { width_scale } else { height_scale },
+                1.0, 1.0
+            ));
 
             let wall_collider = 
-                if horizontal {
-                    np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
-                        nc::shape::Cuboid::new(na::Vector2::new(
-                            CELL_WIDTH * 0.5 - RB_MARGIN,
-                            W_THICKNESS * 0.5,
-                        ))
+                np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
+                    nc::shape::Cuboid::new(na::Vector2::new(
+                        maze_config.cell_width * 0.5 - maze_config.rb_margin,
+                        maze_config.w_thickness * 0.5,
                     ))
-                    .user_data(format!("wall_h_{}", index))
-                    .density(W_DENSITY)
-                } else {
-                    np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
-                        nc::shape::Cuboid::new(na::Vector2::new(
-                            W_THICKNESS * 0.5,
-                            CELL_HEIGHT * 0.5 - RB_MARGIN
-                        ))
-                    ))
-                    .user_data(format!("wall_v_{}", index))
-                    .density(W_DENSITY)
-                };
+                ))
+                .density(maze_config.w_density);
 
             let wall_body = physics::Body { handle: physics.add_rigid_body(rb) };
             let wall_collider = physics::Collider { 
@@ -221,6 +206,7 @@ impl MazeLevel {
 
     pub fn reset_level(
         &mut self,
+        maze_config: &MazeConfig,
         entities: &Entities,
         ss_handle: &Read<SpriteSheetRes>,
         sprite_renders: &mut WriteStorage<SpriteRender>,
@@ -242,7 +228,7 @@ impl MazeLevel {
             entities.delete(entity).expect("Couldn't remove the entity");
         }
         // Rebuild the maze
-        self.rebuild(entities, ss_handle, sprite_renders, transforms, &mut physics, &mut bodies, &mut colliders, &mut temp_markers, screen_dimensions);
+        self.rebuild(maze_config, entities, ss_handle, sprite_renders, transforms, &mut physics, &mut bodies, &mut colliders, &mut temp_markers, screen_dimensions);
         // Move the tanks to new starting positions
         for (index, (_, body)) in (tanks, &mut bodies).join().enumerate() {
             let body = physics.get_rigid_body_mut(body.handle).unwrap();

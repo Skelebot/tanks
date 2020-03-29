@@ -3,7 +3,7 @@ use amethyst::{
     renderer::{SpriteRender},
     ecs::{
         System, Entities, 
-        ReadStorage, WriteStorage, Read, Write, ReadExpect, WriteExpect,
+        ReadStorage, WriteStorage, Read, ReadExpect, WriteExpect,
     },
     window::ScreenDimensions,
 };
@@ -12,11 +12,14 @@ use crate::tank::Tank;
 use crate::markers::TempMarker;
 use crate::utils::SpriteSheetRes;
 use crate::physics;
+use crate::config::MazeConfig;
+
 pub struct LevelSystem;
 
 impl<'s> System<'s> for LevelSystem {
     type SystemData = (
-        Write<'s, MazeLevel>,
+        Read<'s, MazeConfig>,
+        WriteExpect<'s, MazeLevel>,
         Entities<'s>,
         Read<'s, SpriteSheetRes>,
         WriteStorage<'s, SpriteRender>,
@@ -32,6 +35,7 @@ impl<'s> System<'s> for LevelSystem {
     fn run(
         &mut self,
         (
+            maze_config,
             mut level,
             entities,
             sprite_sheet,
@@ -47,6 +51,7 @@ impl<'s> System<'s> for LevelSystem {
     ) {
         if level.should_be_reset {
             level.reset_level(
+                &maze_config,
                 &entities, 
                 &sprite_sheet,
                 &mut sprite_renders, 
