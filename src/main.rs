@@ -12,6 +12,7 @@ use amethyst::{
     },
     input::{InputBundle, StringBindings},
     utils::application_root_dir,
+    ui::{RenderUi, UiBundle},
 };
 use std::time::Duration;
 
@@ -19,10 +20,10 @@ mod states;
 mod level;
 mod utils;
 mod config;
-mod tank;
 mod systems;
 mod markers;
-
+mod tank;
+mod scoreboard;
 mod physics;
 
 fn main() -> amethyst::Result<()> {
@@ -42,6 +43,7 @@ fn main() -> amethyst::Result<()> {
     let game_data = GameDataBuilder::default()
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
+        .with_bundle(UiBundle::<StringBindings>::new())?
         .with(systems::TankSystem, "tank_system", &["input_system"])
         .with(systems::LevelSystem, "level_system", &["tank_system"])
         .with(physics::StepperSystem, "stepper_system", &["level_system"])
@@ -50,12 +52,14 @@ fn main() -> amethyst::Result<()> {
             RenderingBundle::<DefaultBackend>::new()
                 .with_plugin(
                     RenderToWindow::from_config_path(display_config_path)?
-                        .with_clear([0.34, 0.36, 0.52, 1.0]),
+                        //.with_clear([0.918, 0.918, 0.918])    //light background
+                        .with_clear([0.0145, 0.0165, 0.0204])   //dark background
                 )
-                .with_plugin(RenderFlat2D::default()),
+                .with_plugin(RenderFlat2D::default())
+                .with_plugin(RenderUi::default())
         )?;
 
-    let mut game = Application::build(resources, states::GameplayState{maze_r: false})?
+    let mut game = Application::build(resources, states::GameplayState)?
         .with_resource(tank_config)
         .with_resource(maze_config)
         .with_frame_limit(

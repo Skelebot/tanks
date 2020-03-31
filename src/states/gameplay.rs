@@ -10,18 +10,18 @@ use amethyst::{
     prelude::*,
     renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
     window::ScreenDimensions,
+    ui::{Anchor, TtfFormat, UiText, UiTransform, UiImage},
 };
 
 use crate::utils::SpriteSheetRes;
 use crate::level::MazeLevel;
 use crate::config::TankConfig;
 use crate::tank::{Tank, Team};
+use crate::scoreboard::Scoreboard;
 
 use crate::physics;
 
-pub struct GameplayState {
-    pub maze_r: bool,
-}
+pub struct GameplayState;
 impl SimpleState for GameplayState {
     fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
         let world = data.world;
@@ -47,6 +47,8 @@ impl SimpleState for GameplayState {
         init_level(world, &dimensions);
         // Initialize players
         init_players(world, sprite_sheet_handle.clone(), &dimensions);
+        // Initialize the scoreboard
+        init_scoreboard(world, sprite_sheet_handle.clone());
     }
 
     // Handle keyboard and window events,
@@ -59,13 +61,27 @@ impl SimpleState for GameplayState {
                 return Trans::Quit
             }
             if let Some(event) = get_key(&event) {
-                if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed && !self.maze_r {
-                    let mut level = data.world.write_resource::<MazeLevel>();
-                    level.should_be_reset = true;
+                if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
+                    // Reset the level
+                    data.world.write_resource::<MazeLevel>()
+                        .should_be_reset = true;
+                } else if event.0 == VirtualKeyCode::N && event.1 == ElementState::Pressed {
+                    // Increase the red tank's score
+                    data.world.fetch_mut::<Scoreboard>()
+                        .score(
+                            Team::Red,
+                            data.world.system_data()
+                        );
+                } else if event.0 == VirtualKeyCode::M && event.1 == ElementState::Pressed {
+                    // Increase the blue tank's score
+                    data.world.fetch_mut::<Scoreboard>()
+                        .score(
+                            Team::Blue,
+                            data.world.system_data()
+                        );
                 }
             }
         }
-        
         Trans::None
     }
 }
@@ -75,6 +91,99 @@ fn init_level(world: &mut World, dimensions: &ScreenDimensions) {
     // It's up to this function which type and what size of level we should create
     let maze = MazeLevel::new(world, dimensions);
     world.insert(maze);
+}
+
+/// Initialize the UI score counters and the Scoreboard Resource
+fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
+    let margin = 50.0;
+    let padding = 20.0;
+
+    // Tank sprites next to their score
+    let tank_config = (*world.read_resource::<TankConfig>()).clone();
+    let tank_sprites: Vec<SpriteRender> = tank_config.sprite_nums.iter()
+        .map(|i| SpriteRender {
+            sprite_sheet: sheet_handle.clone(),
+            sprite_number: *i,
+        }).collect();
+
+    let red_img_transform = UiTransform::new(
+        "red_img".to_string(), Anchor::BottomLeft, Anchor::BottomLeft,
+        margin,
+        margin, 
+        1.2,
+        tank_config.size_x as f32, 
+        tank_config.size_y as f32,
+    );
+    let red_text_transform = UiTransform::new(
+        "red_text".to_string(), Anchor::BottomLeft, Anchor::BottomLeft,
+        red_img_transform.local_x + red_img_transform.width + padding,
+        margin, 
+        1.2,
+        35.0, 
+        tank_config.size_y as f32,
+    );
+    let blue_img_transform = UiTransform::new(
+        "blue_img".to_string(), Anchor::BottomLeft, Anchor::BottomLeft,
+        red_text_transform.local_x + red_text_transform.width + padding,
+        margin, 
+        1.2,
+        tank_config.size_x as f32, 
+        tank_config.size_y as f32,
+    );
+    let blue_text_transform = UiTransform::new(
+        "blue_text".to_string(), Anchor::BottomLeft, Anchor::BottomLeft,
+        blue_img_transform.local_x + blue_img_transform.width + padding,
+        margin, 
+        1.2,
+        35.0, 
+        tank_config.size_y as f32,
+    );
+
+    // Load the font for the numbers
+    let font = world.read_resource::<Loader>().load(
+        "fonts/BalooThambi2-Regular.ttf",
+        TtfFormat,
+        (),
+        &world.read_resource(),
+    ); 
+
+    // Red tank's score counter
+    let _red_img = world
+        .create_entity()
+        .with(red_img_transform)
+        .with(UiImage::Sprite(tank_sprites[0].clone()))
+        .build();
+    let red_text = world
+        .create_entity()
+        .with(red_text_transform)
+        .with(UiText::new(
+            font.clone(),
+            "99".to_string(),
+            [0.918, 0.918, 0.918, 1.0],
+            50.
+        )).build();
+
+    // Blue tank's score counter
+    let _blue_img = world
+        .create_entity()
+        .with(blue_img_transform)
+        .with(UiImage::Sprite(tank_sprites[1].clone()))
+        .build();
+    let blue_text = world
+        .create_entity()
+        .with(blue_text_transform)
+        .with(UiText::new(
+            font.clone(),
+            "99".to_string(),
+            [1., 1., 1., 1.],
+            50.
+        )).build();
+    
+    // Scoreboard resource
+    let mut scoreboard = Scoreboard::new();
+    scoreboard.texts.push(red_text);
+    scoreboard.texts.push(blue_text);
+    world.insert(scoreboard);
 }
 
 /// Load the texture and sprite definition metatdata 
