@@ -61,6 +61,14 @@ impl Physics {
     }
 
     #[allow(dead_code)]
+    pub fn get_body_mut(&mut self, handle: DefaultBodyHandle) -> Option<&mut dyn np::object::Body<f32>> {
+        match self.bodies.get_mut(handle) {
+            Some(body) => Some(body),
+            None => None,
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn get_rigid_body(&self, handle: DefaultBodyHandle) -> Option<&np::object::RigidBody<f32>> {
         match self.bodies.rigid_body(handle) {
             Some(rigid_body) => Some(rigid_body),

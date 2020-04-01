@@ -2,29 +2,47 @@ List((
   texture_width: 64,
   texture_height: 64,
   sprites: [
+    // Red tank
     (
       x: 0,
       y: 0,
       width: 24,
       height: 24,
     ),
+    // Blue tank
     (
       x: 24,
       y: 0,
       width: 24,
       height: 24,
     ),
+    // Neutral bullet
     (
       x: 52,
       y: 0,
       width: 6,
       height: 6,
     ),
+    // Maze wall
     (
       x: 0,
       y: 24,
       width: 64,
       height: 2,
+    ),
+    // Red pixel
+    (
+      x: 62,
+      y: 23,
+      width: 1,
+      height: 1,
+    ),
+    // Blue pixel
+    (
+      x: 63,
+      y: 23,
+      width: 1,
+      height: 1,
     )
   ]
 ))

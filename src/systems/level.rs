@@ -3,7 +3,7 @@ use amethyst::{
     renderer::{SpriteRender},
     ecs::{
         System, Entities, 
-        ReadStorage, WriteStorage, Read, ReadExpect, WriteExpect,
+        WriteStorage, Read, ReadExpect, WriteExpect,
     },
     window::ScreenDimensions,
 };
@@ -28,7 +28,7 @@ impl<'s> System<'s> for LevelSystem {
         WriteStorage<'s, physics::Body>,
         WriteStorage<'s, physics::Collider>,
         WriteStorage<'s, TempMarker>,
-        ReadStorage<'s, Tank>,
+        WriteStorage<'s, Tank>,
         ReadExpect<'s, ScreenDimensions>,
     );
 
@@ -45,7 +45,7 @@ impl<'s> System<'s> for LevelSystem {
             bodies,
             colliders,
             temp_markers,
-            tanks,
+            mut tanks,
             screen_dimensions,
         ): Self::SystemData,
     ) {
@@ -61,7 +61,7 @@ impl<'s> System<'s> for LevelSystem {
                 colliders,
                 &screen_dimensions,
                 temp_markers,
-                &tanks
+                &mut tanks
             );
             physics.maintain();
             level.should_be_reset = false;

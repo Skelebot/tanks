@@ -3,7 +3,7 @@ use ncollide2d as nc;
 use nalgebra as na;
 use amethyst::{
     prelude::*,
-    ecs::{Entities, Read, WriteStorage, ReadStorage, Join, WriteExpect},
+    ecs::{Entities, Read, WriteStorage, Join, WriteExpect},
     core::Transform,
     renderer::SpriteRender,
     window::ScreenDimensions,
@@ -14,6 +14,7 @@ use crate::markers::TempMarker;
 use crate::tank::Tank;
 use crate::physics;
 use crate::config::MazeConfig;
+use crate::weapons::Weapon;
 
 pub struct MazeLevel {
     pub maze: Maze,
@@ -166,7 +167,7 @@ impl MazeLevel {
             wall_transform.set_translation_xyz(
                 pos.translation.vector.x,
                 pos.translation.vector.y,
-                0.5
+                0.0
             );
             wall_transform.set_rotation_2d(-pos.rotation.angle());
 
@@ -216,7 +217,7 @@ impl MazeLevel {
         mut colliders: WriteStorage<physics::Collider>,
         screen_dimensions: &ScreenDimensions,
         mut temp_markers: WriteStorage<TempMarker>,
-        tanks: &ReadStorage<Tank>,
+        tanks: &mut WriteStorage<Tank>,
     ) {
         // Remove bodies and colliders belonging to entities with a TempMarker Component
         for (body, collider, _) in (&mut bodies, &mut colliders, &temp_markers).join() {
@@ -226,6 +227,10 @@ impl MazeLevel {
         // Remove all entities with a TempMarker Component (like projectiles)
         for (entity, _) in (entities, &mut temp_markers).join() {
             entities.delete(entity).expect("Couldn't remove the entity");
+        }
+        // Reset the weapons
+        for tank in &mut tanks.join() {
+            tank.weapon = Weapon::default();
         }
         // Rebuild the maze
         self.rebuild(maze_config, entities, ss_handle, sprite_renders, transforms, &mut physics, &mut bodies, &mut colliders, &mut temp_markers, screen_dimensions);

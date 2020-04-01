@@ -36,7 +36,7 @@ impl<'s> System<'s> for PTTSystem {
                 let pos = rb.position();
                 transform.set_translation(
                     amethyst::core::math::Vector3::<f32>::new(
-                        pos.translation.vector.x, pos.translation.vector.y, 1.0
+                        pos.translation.vector.x, pos.translation.vector.y, transform.translation().z
                     )
                 );
                 transform.set_rotation(

@@ -5,7 +5,7 @@ use amethyst::{
         timing::Time,
     },
     ecs::{
-        System, Read, ReadStorage, WriteExpect, Join
+        System, Read, ReadStorage, WriteExpect, WriteStorage, Join
     },
     input::{InputHandler, StringBindings},
 };
@@ -17,7 +17,7 @@ pub struct TankSystem;
 
 impl<'s> System<'s> for TankSystem {
     type SystemData = (
-        ReadStorage<'s, Tank>,
+        WriteStorage<'s, Tank>,
         Read<'s, InputHandler<StringBindings>>,
         Read<'s, TankConfig>,
         ReadStorage<'s, physics::Body>,
@@ -28,7 +28,7 @@ impl<'s> System<'s> for TankSystem {
     fn run(
         &mut self,
         (
-            tanks,
+            mut tanks,
             input,
             tank_config,
             bodies,
@@ -36,18 +36,22 @@ impl<'s> System<'s> for TankSystem {
             _time
         ): Self::SystemData,
     ) {
-        for (tank, body) in (&tanks, &bodies).join() {
+        for (tank, body) in (&mut tanks, &bodies).join() {
             // TODO: Parametric input axis names and teams for any arbitrary number of players
-            let (mov_forward, mov_side) = match tank.team {
+            let (mov_forward, mov_side, fire) = match tank.team {
                 Team::Red => (
                     input.axis_value("p1_forward"),
                     input.axis_value("p1_side"),
+                    input.action_is_down("p1_fire")
                 ),
                 Team::Blue => (
                     input.axis_value("p2_forward"),
                     input.axis_value("p2_side"),
+                    input.action_is_down("p2_fire")
                 )
             };
+
+            tank.is_shooting = fire.expect("Something went wrong reading input");
 
             // Change tank velocity
             let mut movement = na::Vector2::repeat(0.0);

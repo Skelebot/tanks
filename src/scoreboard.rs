@@ -21,7 +21,7 @@ impl Scoreboard {
         }
     }
     /// Adds one to a team's score and changes the coresponding UI counter's text
-    pub fn score(&mut self, team: Team, mut ui_text: WriteStorage<UiText>) {
+    pub fn score(&mut self, team: Team, ui_text: &mut WriteStorage<UiText>) {
         self.scores[team as usize] += 1;
         ui_text.get_mut(self.get_text(team)).unwrap()
             .text = self.get_score(team).to_string();

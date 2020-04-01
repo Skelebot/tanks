@@ -18,6 +18,7 @@ use crate::level::MazeLevel;
 use crate::config::TankConfig;
 use crate::tank::{Tank, Team};
 use crate::scoreboard::Scoreboard;
+use crate::weapons::Weapon;
 
 use crate::physics;
 
@@ -61,23 +62,23 @@ impl SimpleState for GameplayState {
                 return Trans::Quit
             }
             if let Some(event) = get_key(&event) {
-                if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
+                if event.0 == VirtualKeyCode::V && event.1 == ElementState::Pressed {
                     // Reset the level
                     data.world.write_resource::<MazeLevel>()
                         .should_be_reset = true;
-                } else if event.0 == VirtualKeyCode::N && event.1 == ElementState::Pressed {
+                } else if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
                     // Increase the red tank's score
                     data.world.fetch_mut::<Scoreboard>()
                         .score(
                             Team::Red,
-                            data.world.system_data()
+                            &mut data.world.system_data()
                         );
-                } else if event.0 == VirtualKeyCode::M && event.1 == ElementState::Pressed {
+                } else if event.0 == VirtualKeyCode::N && event.1 == ElementState::Pressed {
                     // Increase the blue tank's score
                     data.world.fetch_mut::<Scoreboard>()
                         .score(
                             Team::Blue,
-                            data.world.system_data()
+                            &mut data.world.system_data()
                         );
                 }
             }
@@ -119,7 +120,7 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
         red_img_transform.local_x + red_img_transform.width + padding,
         margin, 
         1.2,
-        35.0, 
+        50.0, 
         tank_config.size_y as f32,
     );
     let blue_img_transform = UiTransform::new(
@@ -135,7 +136,7 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
         blue_img_transform.local_x + blue_img_transform.width + padding,
         margin, 
         1.2,
-        35.0, 
+        50.0, 
         tank_config.size_y as f32,
     );
 
@@ -158,7 +159,7 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
         .with(red_text_transform)
         .with(UiText::new(
             font.clone(),
-            "99".to_string(),
+            "0".to_string(),
             [0.918, 0.918, 0.918, 1.0],
             50.
         )).build();
@@ -174,7 +175,7 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
         .with(blue_text_transform)
         .with(UiText::new(
             font.clone(),
-            "99".to_string(),
+            "0".to_string(),
             [1., 1., 1., 1.],
             50.
         )).build();
@@ -256,7 +257,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
         amethyst::core::math::Vector3::new(
             starting_positions[0].x,
             starting_positions[0].y,
-            1.0
+            0.0
         )
     );
     // Amethyst's Transform is in 3D, to create a 2D RigidBody we have to determine it's 2D translation + rotation
@@ -272,7 +273,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
         amethyst::core::math::Vector3::new(
             starting_positions[1].x,
             starting_positions[1].y,
-            1.0
+            0.0
         )
     );
     // Amethyst's Transform is in 3D, to create a 2D RigidBody we have to determine it's 2D translation + rotation
@@ -324,9 +325,17 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
         )
     };
 
+    let default_weapon = Weapon::Beamer {
+        heating_progress: 0.0,
+        shooting_timer: None,
+        overheat_timer: None,
+        heating_square: None,
+        beam: None,
+    };
+
     // Create the red tank
     world.create_entity()
-        .with(Tank::new(Team::Red))
+        .with(Tank::new(Team::Red, default_weapon.clone()))
         .with(sprites[0].clone())
         .with(red_body)
         .with(red_collider)
@@ -335,7 +344,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     
     // Create the blue tank
     world.create_entity()
-       .with(Tank::new(Team::Blue))
+       .with(Tank::new(Team::Blue, default_weapon))
        .with(sprites[1].clone())
        .with(blue_body)
        .with(blue_collider)
