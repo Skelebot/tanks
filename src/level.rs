@@ -11,7 +11,7 @@ use amethyst::{
 use crate::utils::mazegen::Maze;
 use crate::utils::SpriteSheetRes;
 use crate::markers::TempMarker;
-use crate::tank::Tank;
+use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::config::MazeConfig;
 use crate::weapons::Weapon;
@@ -19,7 +19,7 @@ use crate::weapons::Weapon;
 pub struct MazeLevel {
     pub maze: Maze,
     pub starting_positions: [na::Point2<f32>; 2],
-    pub should_be_reset: bool,
+    pub reset_timer: Option<f32>,
 }
 
 impl MazeLevel {
@@ -31,9 +31,9 @@ impl MazeLevel {
         maze.build();
         
         let mut level = MazeLevel {
-            maze: maze,
+            maze,
             starting_positions: [na::Point::origin(); 2],
-            should_be_reset: false,
+            reset_timer: None,
         };
 
         //Actually create wall entities
@@ -50,7 +50,7 @@ impl MazeLevel {
             dimensions
         );
 
-        return level;
+        level
     }
 
     pub fn rebuild(
@@ -68,7 +68,7 @@ impl MazeLevel {
      ) {
 
         //Determine the shift of everything so that the maze sits in the middle of the screen
-        //TODO: Scaling, if the maze cannot fit on the screen
+        //TODO_VL: Scaling, if the maze cannot fit on the screen or is too small
         let x_shift = (screen_dimensions.width() / 2.0) - ((self.maze.width as f32 * maze_config.cell_width) / 2.0);
         let y_shift = (screen_dimensions.height() / 2.0) - ((self.maze.height as f32 * maze_config.cell_height) / 2.0);
 
@@ -113,10 +113,9 @@ impl MazeLevel {
                         na::UnitComplex::new(0.0)
                     );
 
-                    let outer = if y_index == 0 ||
-                        y_index == self.maze.height || x_index == self.maze.width 
-                            { true }
-                        else { false };
+                    let outer = y_index == 0 ||
+                        y_index == self.maze.height || 
+                        x_index == self.maze.width;
 
                     // Create the RigidBody
                     let rb = if outer { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Static).build() }
@@ -140,10 +139,9 @@ impl MazeLevel {
                         na::UnitComplex::new(90.0_f32.to_radians())
                     );
                     
-                    let outer = if x_index == 0 ||
-                        y_index == self.maze.height || x_index == self.maze.width 
-                            { true }
-                        else { false };
+                    let outer = x_index == 0 ||
+                        y_index == self.maze.height ||
+                        x_index == self.maze.width;
 
                     // Create the RigidBody
                     let rb = if outer { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Static).build() }
@@ -190,7 +188,7 @@ impl MazeLevel {
 
             let wall_body = physics::Body { handle: physics.add_rigid_body(rb) };
             let wall_collider = physics::Collider { 
-                handle: physics.add_collider(wall_collider.build(np::object::BodyPartHandle(wall_body.handle.clone(), 0))) 
+                handle: physics.add_collider(wall_collider.build(np::object::BodyPartHandle(wall_body.handle, 0))) 
             };
 
             // Create the entity
@@ -219,6 +217,7 @@ impl MazeLevel {
         mut temp_markers: WriteStorage<TempMarker>,
         tanks: &mut WriteStorage<Tank>,
     ) {
+        // TODO_H: Move this to LevelSystem
         // Remove bodies and colliders belonging to entities with a TempMarker Component
         for (body, collider, _) in (&mut bodies, &mut colliders, &temp_markers).join() {
             physics.remove_collider(collider.handle);
@@ -229,8 +228,11 @@ impl MazeLevel {
             entities.delete(entity).expect("Couldn't remove the entity");
         }
         // Reset the weapons
-        for tank in &mut tanks.join() {
+        for (tank, body) in (&mut *tanks, &bodies).join() {
             tank.weapon = Weapon::default();
+            tank.state = TankState::Alive;
+            // Re-enable physics bodies of all (TODO_O: Destroyed only) tanks
+            physics.get_body_mut(body.handle).unwrap().set_status(np::object::BodyStatus::Dynamic);
         }
         // Rebuild the maze
         self.rebuild(maze_config, entities, ss_handle, sprite_renders, transforms, &mut physics, &mut bodies, &mut colliders, &mut temp_markers, screen_dimensions);
@@ -238,7 +240,6 @@ impl MazeLevel {
         for (index, (_, body)) in (tanks, &mut bodies).join().enumerate() {
             let body = physics.get_rigid_body_mut(body.handle).unwrap();
             body.set_position(na::Isometry2::new(
-                // TODO: Why can't we easily convert between Point2 and Vector2 here?
                 na::Vector2::new(self.starting_positions[index].x, self.starting_positions[index].y),
                 0.0
             ));

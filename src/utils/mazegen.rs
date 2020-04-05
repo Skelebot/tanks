@@ -36,8 +36,8 @@ impl Maze {
     /// Initializes the maze, with all the cells unvisited and all the walls active
     pub fn new(width: usize, height: usize) -> Maze {
         Maze { 
-            width: width,
-            height: height,
+            width,
+            height,
             cells: vec![vec![true; height]; width], 
             walls_h: vec![vec![true; width]; height + 1],
             walls_v: vec![vec![true; width + 1]; height],
@@ -87,13 +87,13 @@ impl Maze {
             if horizontal {
                 let x = thread_rng.gen_range(0, self.width);
                 let y = thread_rng.gen_range(1, self.height);
-                if self.walls_h[y][x] == false { amount += 1; } else {
+                if !self.walls_h[y][x] { amount += 1; } else {
                     self.walls_h[y][x] = false;
                 }
             } else {
                 let x = thread_rng.gen_range(1, self.width);
                 let y = thread_rng.gen_range(0, self.height);
-                if self.walls_v[y][x] == false { amount += 1; } else {
+                if !self.walls_v[y][x] { amount += 1; } else {
                     self.walls_v[y][x] = false;
                 }
             }

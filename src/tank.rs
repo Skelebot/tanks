@@ -8,12 +8,23 @@ pub enum Team {
     Blue
 }
 
+#[derive(PartialEq, Eq, Debug)]
+/// An enum describing the state of a tank
+pub enum TankState {
+    /// The tank is alive - can be controlled by a player and can shoot
+    Alive,
+    /// The tank has just been hit and is designated to be exploded in this frame
+    Hit,
+    /// The tank is not visible, cannot be moved and cannot shoot
+    Destroyed,
+}
+
 /// A Component carrying information about a player's tank
 pub struct Tank {
     pub team: Team,
     pub weapon: Weapon,
     pub is_shooting: bool,
-    //TODO: ammo, different weapons
+    pub state: TankState,
 }
 
 impl Tank {
@@ -21,7 +32,8 @@ impl Tank {
         Tank {
             team,
             weapon,
-            is_shooting: false
+            is_shooting: false,
+            state: TankState::Alive,
         }
     }
 }

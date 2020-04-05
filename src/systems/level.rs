@@ -6,6 +6,7 @@ use amethyst::{
         WriteStorage, Read, ReadExpect, WriteExpect,
     },
     window::ScreenDimensions,
+    core::timing::Time,
 };
 use crate::level::MazeLevel;
 use crate::tank::Tank;
@@ -17,6 +18,7 @@ use crate::config::MazeConfig;
 pub struct LevelSystem;
 
 impl<'s> System<'s> for LevelSystem {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         Read<'s, MazeConfig>,
         WriteExpect<'s, MazeLevel>,
@@ -30,6 +32,7 @@ impl<'s> System<'s> for LevelSystem {
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, Tank>,
         ReadExpect<'s, ScreenDimensions>,
+        Read<'s, Time>,
     );
 
     fn run(
@@ -47,24 +50,29 @@ impl<'s> System<'s> for LevelSystem {
             temp_markers,
             mut tanks,
             screen_dimensions,
+            time,
         ): Self::SystemData,
     ) {
-        if level.should_be_reset {
-            level.reset_level(
-                &maze_config,
-                &entities, 
-                &sprite_sheet,
-                &mut sprite_renders, 
-                &mut transforms,
-                &mut physics,
-                bodies,
-                colliders,
-                &screen_dimensions,
-                temp_markers,
-                &mut tanks
-            );
-            physics.maintain();
-            level.should_be_reset = false;
+        if let Some(ref mut timer) = level.reset_timer {
+            *timer -= time.delta_seconds();
+            if *timer <= 0.0 {
+                // Reset the level
+                level.reset_timer = None;
+                level.reset_level(
+                    &maze_config,
+                    &entities, 
+                    &sprite_sheet,
+                    &mut sprite_renders, 
+                    &mut transforms,
+                    &mut physics,
+                    bodies,
+                    colliders,
+                    &screen_dimensions,
+                    temp_markers,
+                    &mut tanks
+                );
+                physics.maintain();
+            }
         }
     }
 }

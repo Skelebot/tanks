@@ -16,6 +16,7 @@ use crate::config::TankConfig;
 pub struct TankSystem;
 
 impl<'s> System<'s> for TankSystem {
+    #[allow(clippy::type_complexity)]
     type SystemData = (
         WriteStorage<'s, Tank>,
         Read<'s, InputHandler<StringBindings>>,
@@ -33,11 +34,11 @@ impl<'s> System<'s> for TankSystem {
             tank_config,
             bodies,
             mut physics,
-            _time
+            time
         ): Self::SystemData,
     ) {
         for (tank, body) in (&mut tanks, &bodies).join() {
-            // TODO: Parametric input axis names and teams for any arbitrary number of players
+            // TODO_L: Parametric input axis names and teams for any arbitrary number of players
             let (mov_forward, mov_side, fire) = match tank.team {
                 Team::Red => (
                     input.axis_value("p1_forward"),
@@ -67,7 +68,7 @@ impl<'s> System<'s> for TankSystem {
             let rb = physics.get_rigid_body_mut(body.handle).unwrap();
 
             // Movement rotated relative to the tank's front
-            let mov_rel = rb.position().rotation * na::Vector2::new(0.0, movement.y * tank_config.linear_accel);
+            let mov_rel = rb.position().rotation * na::Vector2::new(0.0, movement.y * tank_config.linear_accel * time.delta_seconds() * 100.0);
 
             // TODO: Delta frame time scaling
             // Push the tank forward and apply angular velocity
@@ -75,7 +76,7 @@ impl<'s> System<'s> for TankSystem {
                 * rb.velocity() +
                 np::math::Velocity::new(
                     na::Vector2::new(mov_rel.x, mov_rel.y),
-                    -movement.x * tank_config.angular_accel
+                    -movement.x * tank_config.angular_accel * time.delta_seconds() * 100.0
                 )
             );
         }

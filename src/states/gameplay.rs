@@ -49,7 +49,7 @@ impl SimpleState for GameplayState {
         // Initialize players
         init_players(world, sprite_sheet_handle.clone(), &dimensions);
         // Initialize the scoreboard
-        init_scoreboard(world, sprite_sheet_handle.clone());
+        init_scoreboard(world, sprite_sheet_handle);
     }
 
     // Handle keyboard and window events,
@@ -65,7 +65,7 @@ impl SimpleState for GameplayState {
                 if event.0 == VirtualKeyCode::V && event.1 == ElementState::Pressed {
                     // Reset the level
                     data.world.write_resource::<MazeLevel>()
-                        .should_be_reset = true;
+                        .reset_timer.replace(0.01);
                 } else if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
                     // Increase the red tank's score
                     data.world.fetch_mut::<Scoreboard>()
@@ -174,7 +174,7 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
         .create_entity()
         .with(blue_text_transform)
         .with(UiText::new(
-            font.clone(),
+            font,
             "0".to_string(),
             [1., 1., 1., 1.],
             50.
@@ -204,17 +204,13 @@ fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
             &texture_storage
         )
     };
-    // Load the spritesheet definition file
-    let sheet_handle = {
-        let sheet_storage = world.read_resource::<AssetStorage<SpriteSheet>>();
-        loader.load(
-            "sprites/tanks.ron",
-            SpriteSheetFormat(texture_handle),
-            (),
-            &sheet_storage
-        )
-    };
-    return sheet_handle;
+    // Load the spritesheet definition file and return it
+    loader.load(
+        "sprites/tanks.ron",
+        SpriteSheetFormat(texture_handle),
+        (),
+        &world.read_resource::<AssetStorage<SpriteSheet>>()
+    )
 }
 
 /// Initialize a 2D orhographic camera placed in the middle
@@ -240,7 +236,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
 
     //TODO: Create a trait for levels and change to <Level> (or Box<Level>?)
     // Fetch the level's starting positions (the Level should be crated before initializing players)
-    let starting_positions = (world.read_resource::<MazeLevel>().starting_positions).clone();
+    let starting_positions = world.read_resource::<MazeLevel>().starting_positions;
 
     // Create the SpriteRenders
     //TODO: Determine players' sprite numbers from a config (prefab?)
@@ -309,7 +305,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     };
     let red_collider = physics::Collider {
         handle: world.fetch_mut::<physics::Physics>().add_collider(
-            tank_col_desc.build(np::object::BodyPartHandle(red_body.handle.clone(), 0))
+            tank_col_desc.build(np::object::BodyPartHandle(red_body.handle, 0))
         )
     };
     let blue_body = physics::Body {
@@ -321,7 +317,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     };
     let blue_collider = physics::Collider {
         handle: world.fetch_mut::<physics::Physics>().add_collider(
-            tank_col_desc.build(np::object::BodyPartHandle(blue_body.handle.clone(), 0))
+            tank_col_desc.build(np::object::BodyPartHandle(blue_body.handle, 0))
         )
     };
 
