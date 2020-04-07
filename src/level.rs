@@ -229,7 +229,7 @@ impl MazeLevel {
         }
         // Reset the weapons
         for (tank, body) in (&mut *tanks, &bodies).join() {
-            tank.weapon = Weapon::default();
+            tank.weapon = Weapon::random();
             tank.state = TankState::Alive;
             // Re-enable physics bodies of all (TODO_O: Destroyed only) tanks
             physics.get_body_mut(body.handle).unwrap().set_status(np::object::BodyStatus::Dynamic);

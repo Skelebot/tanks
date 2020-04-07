@@ -6,7 +6,6 @@ use amethyst::{
     core::transform::Transform,
     renderer::SpriteRender,
     window::ScreenDimensions,
-    ui::UiText,
     ecs::{
         Join, System,
         Read, WriteStorage, ReadExpect, WriteExpect,
@@ -18,18 +17,18 @@ use crate::tank::{Tank, Team, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
 use crate::config::TankConfig;
-use crate::markers::TempMarker;
-use crate::scoreboard::Scoreboard;
+use crate::markers::*;
 
 const BEAMER_HEAT_TIME: f32 = 0.5;
 const BEAMER_HEATING_MAX_SCALE: f32 = 23.0;
 const BEAMER_BEAM_WIDTH: f32 = 20.0;
 const BEAMER_SHOOT_TIME: f32 = 1.0;
 const BEAMER_OVERHEAT_TIME: f32 = 2.0;
+const BEAMER_SELF_SAFETY_MARGIN: f32 = 5.0;
 
-pub struct WeaponSystem;
+pub struct BeamerSystem;
 
-impl<'s> System<'s> for WeaponSystem {
+impl<'s> System<'s> for BeamerSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         WriteStorage<'s, Tank>,
@@ -44,12 +43,10 @@ impl<'s> System<'s> for WeaponSystem {
         Read<'s, SpriteSheetRes>,
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, TempMarker>,
+        WriteStorage<'s, DeadlyMarker>,
 
         Read<'s, TankConfig>,
         ReadExpect<'s, ScreenDimensions>,
-
-        WriteExpect<'s, Scoreboard>,
-        WriteStorage<'s, UiText>,
     );
 
     fn run(
@@ -65,10 +62,9 @@ impl<'s> System<'s> for WeaponSystem {
             sprite_sheet,
             mut sprite_renders,
             mut temp_markers,
+            mut deadly_markers,
             tank_config,
             screen_dimensions,
-            mut scoreboard,
-            mut ui_text,
         ): Self::SystemData,
     ) {
 
@@ -130,7 +126,7 @@ impl<'s> System<'s> for WeaponSystem {
                             // Create the beam entity
 
                             let sprite_render = SpriteRender {
-                                sprite_sheet: sprite_sheet.handle.as_ref().expect("SpriteSheet is None").clone(),
+                                sprite_sheet: sprite_sheet.handle.as_ref().unwrap().clone(),
                                 // TODO: Use a config
                                 sprite_number: match tank.team {
                                     Team::Red => 4,
@@ -151,16 +147,16 @@ impl<'s> System<'s> for WeaponSystem {
                             // The position will be set and updated later
                             let mut beam_transform = Transform::default();
                             beam_transform.set_scale(scale);
-                            // We don't want to see the beam until it's transform gets updated, so we set the
-                            // initial position to something safely off-screen
-                            // TODO: Find a method to hide and show sprites
-                            beam_transform.set_translation_x(-100.0);
                             // Make the beam appear over the wall sprites
                             beam_transform.set_translation_z(0.2);
+                            // We don't want to see the beam until it's body position gets updated, so we set the
+                            // initial position to something safely off-screen
+                            // TODO: Find a method to hide and show sprites
+                            let tmp_pos = na::Isometry2::translation(-100.0, 0.0);
 
                             // Create a sensor for the beam for detecting physics bodies in the beam
                             let shape = nc::shape::ShapeHandle::new(nc::shape::Cuboid::new(na::Vector2::new(scale.x/2.0, scale.y/2.0)));
-                            let body = np::object::RigidBodyDesc::new().status(np::object::BodyStatus::Kinematic).build();
+                            let body = np::object::RigidBodyDesc::new().status(np::object::BodyStatus::Kinematic).position(tmp_pos).build();
                             let body_handle = physics.add_rigid_body(body);
                             let sensor = np::object::ColliderDesc::new(shape).sensor(true).build(np::object::BodyPartHandle(body_handle, 0));
                             let sensor_handle = physics.add_collider(sensor);
@@ -170,8 +166,9 @@ impl<'s> System<'s> for WeaponSystem {
                                 .with(beam_transform, &mut transforms)
                                 .with(sprite_render, &mut sprite_renders)
                                 .with(TempMarker, &mut temp_markers)
-                                .with(physics::Collider{handle: sensor_handle}, &mut colliders)
-                                // We would do that but we already borrowed bodies, so we have to build the entity and add the body later
+                                .with(DeadlyMarker, &mut deadly_markers)
+                                .with(physics::Collider::new(sensor_handle), &mut colliders)
+                                // We would do that but we already borrowed bodies, so we have to build the entity now and add the body later
                                 //.with(physics::Body{handle: body_handle}, &mut bodies)
                                 .build();
 
@@ -186,7 +183,6 @@ impl<'s> System<'s> for WeaponSystem {
                             shooting_timer.replace(BEAMER_SHOOT_TIME);
                         }
                     } 
-                    
                 }
 
                 // Update things related to the weapon
@@ -200,7 +196,9 @@ impl<'s> System<'s> for WeaponSystem {
                     let amethyst_rotation = amethyst::core::math::UnitQuaternion::from_axis_angle(&amethyst::core::math::Vector::z_axis(), body.position().rotation.angle());
                     let trans = body.position().translation.vector.push(0.1)
                         + rotation * na::Vector3::<f32>::new(0.0, tank_config.size_y as f32 / 2.0, 0.1);
+
                     let scale = *heating_progress * BEAMER_HEATING_MAX_SCALE;
+
                     transforms.get_mut(*square).unwrap()
                         .set_translation_xyz(trans.x, trans.y, trans.z)
                         .set_rotation(amethyst_rotation)
@@ -219,7 +217,7 @@ impl<'s> System<'s> for WeaponSystem {
                         if let Some(beam_pbody) = bodies.get(*beam) {
                             let rotation = na::UnitComplex::from_angle(body.position().rotation.angle());
                             let trans = body.position().translation.vector
-                                + rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + (transforms.get(*beam).unwrap().scale().y / 2.0));
+                                + rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + (transforms.get(*beam).unwrap().scale().y / 2.0) + BEAMER_SELF_SAFETY_MARGIN);
                             let angle = body.position().rotation.angle();
                             physics.get_rigid_body_mut(beam_pbody.handle).unwrap()
                                 .set_position(
@@ -270,44 +268,6 @@ impl<'s> System<'s> for WeaponSystem {
         }
         for (entity, body) in bodies_to_add.drain(..) {
             bodies.insert(entity, body).expect("Something went wrong when adding bodies to entities");
-        }
-        // Check for tanks in the way of Weapon::Beamer's beams
-        // If there are any, score for the tank's team
-        // and reset the level
-        physics.maintain();
-        let mut tanks_to_destroy = Vec::<Entity>::new();
-        for (tank, collider) in (&tanks, &colliders).join() {
-            if let Weapon::Beamer { beam , .. } = tank.weapon {
-                if let Some(beam) = beam {
-                    if let Some(proximities) = physics.geom_world.proximities_with(&physics.colliders, colliders.get(beam).unwrap().handle, true) {
-
-                        for proximity in proximities {
-                            // Proximity is (collider_handle, collider, collider1_handle, collider1, ..)
-                            // let coll1_handle = proximity.0;
-                            let coll2_handle = proximity.2;
-                            // If somehow the tank hit itself with its beam, continue
-                            // this would be ok if a tank was hit with its own flying bullet,
-                            // but when using a laser beam weapon that doesn't bounce we assume
-                            // that it comes from an error while positioning the beam, so we
-                            // skip the proximity event.
-                            if coll2_handle == collider.handle { continue; }
-
-                            // Compare the victim handle with other tanks' handles to find the exact tank that got hit
-                            for (other_tank, other_collider, other_entity) in (&tanks, &colliders, &entities).join() {
-                                if coll2_handle == other_collider.handle {
-                                    // Score for the shooter tank's team
-                                    scoreboard.score(tank.team, &mut ui_text);
-                                    println!("{:?} tank hit {:?} tank with a laser beam", tank.team, other_tank.team);
-                                    tanks_to_destroy.push(other_entity);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        for entity in tanks_to_destroy.drain(..) {
-            tanks.get_mut(entity).unwrap().state = TankState::Hit;
         }
     }
 }

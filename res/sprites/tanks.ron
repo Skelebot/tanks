@@ -18,7 +18,7 @@ List((
     ),
     // Neutral bullet
     (
-      x: 52,
+      x: 58,
       y: 0,
       width: 6,
       height: 6,

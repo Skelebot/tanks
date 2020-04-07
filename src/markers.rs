@@ -7,9 +7,9 @@ impl Component for TempMarker {
     type Storage = NullStorage<Self>;
 }
 
-/// Used to mark entities that have sensors that destroy tanks
+/// Used to mark entities that have colliders that destroy tanks
 #[derive(Default)]
-pub struct Beam;
-impl Component for Beam {
+pub struct DeadlyMarker;
+impl Component for DeadlyMarker {
     type Storage = NullStorage<Self>;
 }

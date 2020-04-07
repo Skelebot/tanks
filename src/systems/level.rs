@@ -7,6 +7,7 @@ use amethyst::{
     },
     window::ScreenDimensions,
     core::timing::Time,
+    ui::UiText,
 };
 use crate::level::MazeLevel;
 use crate::tank::Tank;
@@ -14,6 +15,7 @@ use crate::markers::TempMarker;
 use crate::utils::SpriteSheetRes;
 use crate::physics;
 use crate::config::MazeConfig;
+use crate::scoreboard::Scoreboard;
 
 pub struct LevelSystem;
 
@@ -33,6 +35,9 @@ impl<'s> System<'s> for LevelSystem {
         WriteStorage<'s, Tank>,
         ReadExpect<'s, ScreenDimensions>,
         Read<'s, Time>,
+
+        WriteExpect<'s, Scoreboard>,
+        WriteStorage<'s, UiText>,
     );
 
     fn run(
@@ -51,11 +56,15 @@ impl<'s> System<'s> for LevelSystem {
             mut tanks,
             screen_dimensions,
             time,
+            mut scoreboard,
+            mut ui_text,
         ): Self::SystemData,
     ) {
         if let Some(ref mut timer) = level.reset_timer {
             *timer -= time.delta_seconds();
             if *timer <= 0.0 {
+                // Update score for the winners
+                scoreboard.update_winners(&mut ui_text);
                 // Reset the level
                 level.reset_timer = None;
                 level.reset_level(

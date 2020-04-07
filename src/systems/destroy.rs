@@ -18,12 +18,13 @@ use crate::tank::{Tank, Team, TankState};
 use crate::physics;
 use crate::markers::*;
 use crate::level::MazeLevel;
+use crate::scoreboard::Scoreboard;
 
 const PARTICLE_SPRITE_NUMS: [usize; 3] = [6, 7, 8];
 const RED_PARTICLE_SPRITE_NUMS: [usize; 2] = [9, 10];
 const BLUE_PARTICLE_SPRITE_NUMS: [usize; 2] = [11, 12];
-const PARTICLE_DAMPING: f32 = 0.2;
-const PARTICLE_TANK_NUM: u32 = 10;
+const PARTICLE_DAMPING: f32 = 0.3;
+const PARTICLE_TANK_NUM: u32 = 12;
 // TODO: Make it possible to explode things like walls
 // const PARTICLE_OTHER_NUM: u32 = 5;
 const PARTICLE_MIN_VEL: f32 = 400.0;
@@ -49,9 +50,12 @@ impl<'s> System<'s> for DestroySystem {
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, TempMarker>,
+        WriteStorage<'s, DeadlyMarker>,
 
         // TODO: Make a level reset timer Resource so that we don't have to fetch the whole level
         WriteExpect<'s, MazeLevel>,
+
+        WriteExpect<'s, Scoreboard>,
     );
 
     fn run (
@@ -66,9 +70,42 @@ impl<'s> System<'s> for DestroySystem {
             mut sprite_renders,
             mut transforms,
             mut temp_markers,
+            deadly_markers,
             mut level,
+            mut scoreboard,
         ): Self::SystemData
     ) {
+        // Check for tanks colliding with entities marked with DeadlyMarker
+        // Score for the tank's team
+        // and reset the level
+        physics.maintain();
+        for (collider, _) in (&colliders, &deadly_markers).join() {
+            if let Some(interactions) = 
+                physics.geom_world.interactions_with(&physics.colliders, collider.handle, true)
+            {
+                for interaction in interactions {
+                    // interaction is (collider_handle, collider, collider1_handle, collider1, Interaction)
+                    // The first collider is the one that hit the second, so the first will be our
+                    // deadly entity (for example a bullet or a laser beam)
+                    // and the second will be a wall, a tank or something else
+                    // We don't need the deadly collider handle, we only care what it hit
+                    let deadly_handle = interaction.0;
+                    let hit_handle = interaction.2;
+                    // Match tank to collider handle and determine it's team
+                    for (tank, tank_collider) in (&mut tanks, &colliders).join() {
+                        if hit_handle == tank_collider.handle || deadly_handle == tank_collider.handle {
+                            // Tell the scoreboard the tank lost the round
+                            scoreboard.report_destroyed(tank.team);
+                            println!("{:?} tank is destroyed", tank.team);
+                            // We change the tank's state to 'Hit' so that the following code 
+                            // will do the explosion and stuff
+                            tank.state = TankState::Hit;
+                        }
+                    }
+                }
+            }
+        }
+        // Explode tanks that were hit, then change their state to destroyed
         // Position, angle, velocity, spriterender
         let mut particles = Vec::<(na::Vector2::<f32>, f32, f32, SpriteRender)>::new();
 

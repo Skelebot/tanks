@@ -1,8 +1,10 @@
 mod tank;
 mod level;
-mod weapon;
 mod destroy;
+mod beamer;
+mod cannon;
 pub use level::LevelSystem;
 pub use tank::TankSystem;
-pub use weapon::WeaponSystem;
+pub use beamer::BeamerSystem;
+pub use cannon::CannonSystem;
 pub use destroy::DestroySystem;

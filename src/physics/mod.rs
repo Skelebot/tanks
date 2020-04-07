@@ -11,9 +11,19 @@ mod systems;
 pub use systems::*;
 
 pub struct Collider { pub handle: DefaultColliderHandle }
+impl Component for Collider { type Storage = DenseVecStorage<Self>; }
+impl Collider {
+    pub fn new(handle: DefaultColliderHandle) -> Self {
+        Collider { handle }
+    }
+}
 pub struct Body { pub handle: DefaultBodyHandle }
 impl Component for Body { type Storage = DenseVecStorage<Self>; }
-impl Component for Collider { type Storage = DenseVecStorage<Self>; }
+impl Body {
+    pub fn new(handle: DefaultBodyHandle) -> Self {
+        Body { handle }
+    }
+}
 
 pub struct Physics {
     pub mech_world: DefaultMechanicalWorld<f32>,
@@ -26,8 +36,10 @@ pub struct Physics {
 
 impl Physics {
     pub fn new() -> Self {
+        let mut mech_world = DefaultMechanicalWorld::new(na::Vector2::new(0.0, 0.0));
+        mech_world.solver.set_contact_model(Box::new(np::solver::SignoriniModel::new()));
         Physics {
-            mech_world: DefaultMechanicalWorld::new(na::Vector2::new(0.0, 0.0)),
+            mech_world,
             geom_world: DefaultGeometricalWorld::new(),
             bodies: DefaultBodySet::new(),
             colliders: DefaultColliderSet::new(),

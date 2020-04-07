@@ -62,24 +62,10 @@ impl SimpleState for GameplayState {
                 return Trans::Quit
             }
             if let Some(event) = get_key(&event) {
-                if event.0 == VirtualKeyCode::V && event.1 == ElementState::Pressed {
+                if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
                     // Reset the level
                     data.world.write_resource::<MazeLevel>()
                         .reset_timer.replace(0.01);
-                } else if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
-                    // Increase the red tank's score
-                    data.world.fetch_mut::<Scoreboard>()
-                        .score(
-                            Team::Red,
-                            &mut data.world.system_data()
-                        );
-                } else if event.0 == VirtualKeyCode::N && event.1 == ElementState::Pressed {
-                    // Increase the blue tank's score
-                    data.world.fetch_mut::<Scoreboard>()
-                        .score(
-                            Team::Blue,
-                            &mut data.world.system_data()
-                        );
                 }
             }
         }
@@ -321,17 +307,9 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
         )
     };
 
-    let default_weapon = Weapon::Beamer {
-        heating_progress: 0.0,
-        shooting_timer: None,
-        overheat_timer: None,
-        heating_square: None,
-        beam: None,
-    };
-
     // Create the red tank
     world.create_entity()
-        .with(Tank::new(Team::Red, default_weapon.clone()))
+        .with(Tank::new(Team::Red, Weapon::random()))
         .with(sprites[0].clone())
         .with(red_body)
         .with(red_collider)
@@ -340,7 +318,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     
     // Create the blue tank
     world.create_entity()
-       .with(Tank::new(Team::Blue, default_weapon))
+       .with(Tank::new(Team::Blue, Weapon::random()))
        .with(sprites[1].clone())
        .with(blue_body)
        .with(blue_collider)

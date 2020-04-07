@@ -47,8 +47,11 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(UiBundle::<StringBindings>::new())?
         .with(systems::TankSystem, "tank_system", &["input_system"])
         .with(systems::LevelSystem, "level_system", &["tank_system"])
-        .with(systems::WeaponSystem, "weapon_system", &["level_system"])
-        .with(systems::DestroySystem, "destroy_system", &["weapon_system"])
+
+        .with(systems::BeamerSystem, "beamer_system", &["level_system"])
+        .with(systems::CannonSystem, "cannon_system", &["level_system"])
+
+        .with(systems::DestroySystem, "destroy_system", &["beamer_system", "cannon_system"])
         .with(physics::StepperSystem, "stepper_system", &["destroy_system"])
         .with(physics::PTTSystem, "physics_to_transform_system", &["stepper_system"])
         .with_bundle(
