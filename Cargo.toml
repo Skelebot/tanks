@@ -11,6 +11,8 @@ rand = "0.7.3"
 nphysics2d = "0.14.0"
 ncollide2d = "0.22.0"
 nalgebra = "0.20.0"
+derivative = "2.1.0"
+failure = "0.1.7"
 
 #[dependencies.specs-physics]
 #git = "https://github.com/distransient/specs-physics.git"

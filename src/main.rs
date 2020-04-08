@@ -26,6 +26,7 @@ mod tank;
 mod scoreboard;
 mod physics;
 mod weapons;
+mod graphics;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(Default::default());

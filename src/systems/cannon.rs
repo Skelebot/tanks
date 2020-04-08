@@ -22,9 +22,11 @@ const CANNON_SHOOT_TIME: f32 = 0.2;
 const CANNON_SELF_SAFETY_MARGIN: f32 = 3.0;
 const CANNON_BULLET_SPRITE_NUM: usize = 2;
 const CANNON_BULLET_DENSITY: f32 = 25.0;
-const CANNON_BULLET_MARGIN: f32 = 0.4;
+const CANNON_BULLET_MARGIN: f32 = 1.0;
 const CANNON_BULLET_RADIUS: f32 = 3.0;
 const CANNON_BULLET_VELOCITY: f32 = 100.0;
+const CANNON_BULLET_RESTITUTION: f32 = 2.0;
+const CANNON_BULLET_FRICTION: f32 = 0.0;
 
 pub struct CannonSystem;
 
@@ -91,7 +93,9 @@ impl<'s> System<'s> for CannonSystem {
                             .build();
                         let body_handle = physics.add_rigid_body(body);
                         let collider = np::object::ColliderDesc::new(shape)
-                            .material(np::material::MaterialHandle::new(np::material::BasicMaterial::new(1.0, 0.0)))
+                            .material(np::material::MaterialHandle::new(
+                                np::material::BasicMaterial::new(CANNON_BULLET_RESTITUTION, CANNON_BULLET_FRICTION))
+                            )
                             .ccd_enabled(true)
                             .margin(CANNON_BULLET_MARGIN)
                             .set_density(CANNON_BULLET_DENSITY)
