@@ -3,7 +3,7 @@ use ncollide2d as nc;
 use nalgebra as na;
 use amethyst::{
     prelude::*,
-    ecs::{Entities, Read, WriteStorage, Join, WriteExpect},
+    ecs::{Entities, Read, WriteStorage, WriteExpect},
     core::Transform,
     renderer::SpriteRender,
     window::ScreenDimensions,
@@ -11,10 +11,8 @@ use amethyst::{
 use crate::utils::mazegen::Maze;
 use crate::utils::SpriteSheetRes;
 use crate::markers::TempMarker;
-use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::config::MazeConfig;
-use crate::weapons::Weapon;
 
 pub struct MazeLevel {
     pub maze: Maze,
@@ -152,7 +150,7 @@ impl MazeLevel {
             }
         }
 
-        for (pos, rb, horizontal) in w_pos_rb_h.drain(..) {
+        for (pos, mut rb, horizontal) in w_pos_rb_h.drain(..) {
             // Create Physics for the entity
             // Create a renderable sprite
             let sprite_render = SpriteRender {
@@ -186,6 +184,10 @@ impl MazeLevel {
                 ))
                 .density(maze_config.w_density);
 
+            use np::object::Body;
+            use np::object::BodyStatus::{Dynamic, Static};
+            rb.set_status( if maze_config.dynamic_walls { Dynamic } else { Static } );
+
             let wall_body = physics::Body { handle: physics.add_rigid_body(rb) };
             let wall_collider = physics::Collider { 
                 handle: physics.add_collider(wall_collider.build(np::object::BodyPartHandle(wall_body.handle, 0))) 
@@ -196,53 +198,10 @@ impl MazeLevel {
                 .build_entity()
                 .with(sprite_render, &mut sprite_renders)
                 .with(wall_transform, &mut transforms)
-                .with(TempMarker, &mut temp_markers)
+                .with(TempMarker(None), &mut temp_markers)
                 .with(wall_body, &mut bodies)
                 .with(wall_collider, &mut colliders)
                 .build();
-        }
-    }
-
-    pub fn reset_level(
-        &mut self,
-        maze_config: &MazeConfig,
-        entities: &Entities,
-        ss_handle: &Read<SpriteSheetRes>,
-        sprite_renders: &mut WriteStorage<SpriteRender>,
-        transforms: &mut WriteStorage<Transform>,
-        mut physics: &mut WriteExpect<physics::Physics>,
-        mut bodies: WriteStorage<physics::Body>,
-        mut colliders: WriteStorage<physics::Collider>,
-        screen_dimensions: &ScreenDimensions,
-        mut temp_markers: WriteStorage<TempMarker>,
-        tanks: &mut WriteStorage<Tank>,
-    ) {
-        // TODO_H: Move this to LevelSystem
-        // Remove bodies and colliders belonging to entities with a TempMarker Component
-        for (body, collider, _) in (&mut bodies, &mut colliders, &temp_markers).join() {
-            physics.remove_collider(collider.handle);
-            physics.remove_rigid_body(body.handle);
-        }
-        // Remove all entities with a TempMarker Component (like projectiles)
-        for (entity, _) in (entities, &mut temp_markers).join() {
-            entities.delete(entity).expect("Couldn't remove the entity");
-        }
-        // Reset the weapons
-        for (tank, body) in (&mut *tanks, &bodies).join() {
-            tank.weapon = Weapon::random();
-            tank.state = TankState::Alive;
-            // Re-enable physics bodies of all (TODO_O: Destroyed only) tanks
-            physics.get_body_mut(body.handle).unwrap().set_status(np::object::BodyStatus::Dynamic);
-        }
-        // Rebuild the maze
-        self.rebuild(maze_config, entities, ss_handle, sprite_renders, transforms, &mut physics, &mut bodies, &mut colliders, &mut temp_markers, screen_dimensions);
-        // Move the tanks to new starting positions
-        for (index, (_, body)) in (tanks, &mut bodies).join().enumerate() {
-            let body = physics.get_rigid_body_mut(body.handle).unwrap();
-            body.set_position(na::Isometry2::new(
-                na::Vector2::new(self.starting_positions[index].x, self.starting_positions[index].y),
-                0.0
-            ));
         }
     }
 }

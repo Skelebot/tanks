@@ -1,10 +1,12 @@
-use amethyst::ecs::{Component, NullStorage};
+use amethyst::ecs::{Component, NullStorage, VecStorage};
 
 /// Used to mark temporary entities that should be deleted when changing levels
+/// Optional time after which the entity will be removed
+/// Entities with a timer will still be removed on level change
 #[derive(Default)]
-pub struct TempMarker;
+pub struct TempMarker(pub Option<f32>);
 impl Component for TempMarker {
-    type Storage = NullStorage<Self>;
+    type Storage = VecStorage<Self>;
 }
 
 /// Used to mark entities that have colliders that destroy tanks

@@ -113,7 +113,7 @@ impl<'s> System<'s> for BeamerSystem {
                                 .build_entity()
                                 .with(square_transform, &mut transforms)
                                 .with(sprite_render, &mut sprite_renders)
-                                .with(TempMarker, &mut temp_markers)
+                                .with(TempMarker(None), &mut temp_markers)
                                 .build();
                             
                             heating_square.replace(square_entity);
@@ -165,7 +165,7 @@ impl<'s> System<'s> for BeamerSystem {
                                 .build_entity()
                                 .with(beam_transform, &mut transforms)
                                 .with(sprite_render, &mut sprite_renders)
-                                .with(TempMarker, &mut temp_markers)
+                                .with(TempMarker(None), &mut temp_markers)
                                 .with(DeadlyMarker, &mut deadly_markers)
                                 .with(physics::Collider::new(sensor_handle), &mut colliders)
                                 // We would do that but we already borrowed bodies, so we have to build the entity now and add the body later

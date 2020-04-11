@@ -27,6 +27,7 @@ const CANNON_BULLET_RADIUS: f32 = 3.0;
 const CANNON_BULLET_VELOCITY: f32 = 100.0;
 const CANNON_BULLET_RESTITUTION: f32 = 2.0;
 const CANNON_BULLET_FRICTION: f32 = 0.0;
+const CANNON_BULLET_TIME: f32 = 5.0;
 
 pub struct CannonSystem;
 
@@ -115,7 +116,7 @@ impl<'s> System<'s> for CannonSystem {
                             .with(physics::Collider::new(collider_handle), &mut colliders)
                             // We would do that but we already borrowed bodies, so we have to build the entity now and add the body later
                             //.with(physics::Body{handle: body_handle}, &mut bodies)
-                            .with(TempMarker, &mut temp_markers)
+                            .with(TempMarker(Some(CANNON_BULLET_TIME)), &mut temp_markers)
                             .with(DeadlyMarker, &mut deadly_markers)
                             .build();
                         bodies_to_add.push((ent, physics::Body::new(body_handle)));

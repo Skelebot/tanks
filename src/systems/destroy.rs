@@ -203,7 +203,7 @@ impl<'s> System<'s> for DestroySystem {
                 .with(transform, &mut transforms)
                 .with(body, &mut bodies)
                 .with(collider, &mut colliders)
-                .with(TempMarker, &mut temp_markers)
+                .with(TempMarker(None), &mut temp_markers)
                 .build();
         }
     }

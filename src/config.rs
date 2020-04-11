@@ -27,6 +27,7 @@ pub struct MazeConfig {
     pub rb_margin: f32,
     pub w_density: f32,
     pub w_damping: f32,
+    pub dynamic_walls: bool,
     pub maze_width: usize,
     pub maze_height: usize,
     pub sprite_num: usize,
