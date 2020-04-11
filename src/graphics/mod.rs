@@ -110,12 +110,12 @@ impl<B: Backend> RenderGroupDesc<B, World> for DrawFlat2DDesc {
         subpass: hal::pass::Subpass<'_, B>,
         _buffers: Vec<NodeBuffer>,
         _images: Vec<NodeImage>,
-    ) -> Result<Box<dyn RenderGroup<B, World>>, failure::Error> {
+    ) -> Result<Box<dyn RenderGroup<B, World>>, pso::CreationError> {
         #[cfg(feature = "profiler")]
         profile_scope!("build");
 
-        let env = FlatEnvironmentSub::new(factory)?;
-        let textures = TextureSub::new(factory)?;
+        let env = FlatEnvironmentSub::new(factory).map_err(|_| pso::CreationError::Other)?;
+        let textures = TextureSub::new(factory).map_err(|_| pso::CreationError::Other)?;
         let vertex = DynamicVertexBuffer::new();
 
         let (pipeline, pipeline_layout) = build_sprite_pipeline(
@@ -281,7 +281,7 @@ fn build_sprite_pipeline<B: Backend>(
     framebuffer_height: u32,
     transparent: bool,
     layouts: Vec<&B::DescriptorSetLayout>,
-) -> Result<(B::GraphicsPipeline, B::PipelineLayout), failure::Error> {
+) -> Result<(B::GraphicsPipeline, B::PipelineLayout), pso::CreationError> {
     let pipeline_layout = unsafe {
         factory
             .device()
@@ -305,7 +305,7 @@ fn build_sprite_pipeline<B: Backend>(
         .with_pipeline(
             PipelineDescBuilder::new()
                 .with_vertex_desc(&[(SpriteArgs::vertex(), pso::VertexInputRate::Instance(1))])
-                .with_input_assembler(pso::InputAssemblerDesc::new(hal::Primitive::TriangleStrip))
+                .with_input_assembler(pso::InputAssemblerDesc::new(pso::Primitive::TriangleStrip))
                 .with_shaders(util::simple_shader_set(
                     &shader_vertex,
                     Some(&shader_fragment),
@@ -326,9 +326,9 @@ fn build_sprite_pipeline<B: Backend>(
                     write: !transparent,
                 })
                 .with_multisampling(Some(Multisampling {
-                    rasterization_samples: 32,
+                    rasterization_samples: 8,
                     sample_shading: Some(1.0),
-                    sample_mask: 0,
+                    sample_mask: 2,
                     alpha_coverage: true,
                     alpha_to_one: false,
                 }))

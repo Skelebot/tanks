@@ -22,4 +22,5 @@ failure = "0.1.7"
 
 [dependencies.amethyst]
 git = "https://github.com/amethyst/amethyst.git"
+branch = "wasm"
 features = ["vulkan"]

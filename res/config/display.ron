@@ -1,5 +1,10 @@
 (
-  title: "tanks2",
+  title: "tanks by HoldIT",
   dimensions: Some((800, 600)),
-  resizable: false,
+  min_dimensions: Some((400, 300)),
+  max_dimensions: Some((1200, 900)),
+  visibility: true,
+  decorations: false,
+  maximized: false,
+  resizable: true,
 )

@@ -50,9 +50,8 @@ dependencies = [
 
 [[package]]
 name = "alsa-sys"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0edcbbf9ef68f15ae1b620f722180b82a98b6f0628d30baa6b8d2a5abc87d58"
+version = "0.1.1"
+source = "git+https://github.com/amethyst/cpal?branch=wasm#8b9e1e23188c47d61560fed9d1f53a2e4e699ae6"
 dependencies = [
  "libc",
  "pkg-config",
@@ -61,7 +60,7 @@ dependencies = [
 [[package]]
 name = "amethyst"
 version = "0.15.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_animation",
  "amethyst_assets",
@@ -97,7 +96,7 @@ dependencies = [
 [[package]]
 name = "amethyst_animation"
 version = "0.10.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_core",
@@ -116,7 +115,7 @@ dependencies = [
 [[package]]
 name = "amethyst_assets"
 version = "0.11.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_core",
  "amethyst_derive",
@@ -140,7 +139,7 @@ dependencies = [
 [[package]]
 name = "amethyst_audio"
 version = "0.10.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_core",
@@ -156,7 +155,7 @@ dependencies = [
 [[package]]
 name = "amethyst_config"
 version = "0.14.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "log",
  "ron",
@@ -166,13 +165,14 @@ dependencies = [
 [[package]]
 name = "amethyst_controls"
 version = "0.9.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_core",
  "amethyst_derive",
  "amethyst_error",
  "amethyst_input",
+ "amethyst_window",
  "derive-new",
  "log",
  "serde",
@@ -182,7 +182,7 @@ dependencies = [
 [[package]]
 name = "amethyst_core"
 version = "0.10.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "alga",
  "alga_derive",
@@ -192,6 +192,7 @@ dependencies = [
  "derive-new",
  "fnv",
  "getset",
+ "instant",
  "log",
  "nalgebra 0.19.0",
  "num-traits 0.2.11",
@@ -204,7 +205,7 @@ dependencies = [
 [[package]]
 name = "amethyst_derive"
 version = "0.8.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "heck",
  "proc-macro-crate",
@@ -217,7 +218,7 @@ dependencies = [
 [[package]]
 name = "amethyst_error"
 version = "0.5.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "backtrace",
 ]
@@ -225,7 +226,7 @@ dependencies = [
 [[package]]
 name = "amethyst_input"
 version = "0.11.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_config",
  "amethyst_core",
@@ -242,7 +243,7 @@ dependencies = [
 [[package]]
 name = "amethyst_locale"
 version = "0.9.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_core",
@@ -255,7 +256,7 @@ dependencies = [
 [[package]]
 name = "amethyst_network"
 version = "0.8.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_core",
  "amethyst_error",
@@ -267,7 +268,7 @@ dependencies = [
 [[package]]
 name = "amethyst_rendy"
 version = "0.5.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_config",
@@ -290,12 +291,13 @@ dependencies = [
  "serde",
  "smallvec 1.2.0",
  "static_assertions 1.1.0",
+ "web-sys",
 ]
 
 [[package]]
 name = "amethyst_ui"
 version = "0.10.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_audio",
@@ -310,7 +312,6 @@ dependencies = [
  "derive-new",
  "failure",
  "fnv",
- "font-kit",
  "glsl-layout",
  "glyph_brush",
  "lazy_static",
@@ -328,7 +329,7 @@ dependencies = [
 [[package]]
 name = "amethyst_utils"
 version = "0.10.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_assets",
  "amethyst_controls",
@@ -347,7 +348,7 @@ dependencies = [
 [[package]]
 name = "amethyst_window"
 version = "0.5.0"
-source = "git+https://github.com/amethyst/amethyst.git#6453a83c4dc5b6152d35004d64931f5e09f98e65"
+source = "git+https://github.com/amethyst/amethyst.git?branch=wasm#32b8a0767263e28e69d714ff7d5fdbd95872b313"
 dependencies = [
  "amethyst_config",
  "amethyst_core",
@@ -415,11 +416,11 @@ checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
 
 [[package]]
 name = "ash"
-version = "0.29.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "003d1fb2eb12eb06d4a03dbe02eea67a9fac910fa97932ab9e3a75b96a1ea5e5"
+checksum = "69daec0742947f33a85931fa3cb0ce5f07929159dcbd1f0cbb5b2912e2978509"
 dependencies = [
- "shared_library",
+ "libloading",
 ]
 
 [[package]]
@@ -436,7 +437,7 @@ checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
 dependencies = [
  "hermit-abi",
  "libc",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -562,6 +563,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "130aac562c0dd69c56b3b1cc8ffd2e17be31d0b6c25b61c96b76231aa23e39e1"
 
 [[package]]
+name = "calloop"
+version = "0.4.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7aa2097be53a00de9e8fc349fea6d76221f398f5c4fa550d420669906962d160"
+dependencies = [
+ "mio",
+ "mio-extras",
+ "nix",
+]
+
+[[package]]
 name = "cc"
 version = "1.0.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -641,7 +653,7 @@ version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3a093d6fed558e5fe24c3dfc85a68bb68f1c824f440d3ba5aca189e2998786b"
 dependencies = [
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -654,19 +666,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "cmake"
-version = "0.1.42"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81fb25b677f8bf1eb325017cb6bb8452f87969db0fedb4f757b297bee78a7c62"
-dependencies = [
- "cc",
-]
-
-[[package]]
 name = "cocoa"
-version = "0.18.5"
+version = "0.19.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1706996401131526e36b3b49f0c4d912639ce110996f3ca144d78946727bce54"
+checksum = "f29f7768b2d1be17b96158e3285951d366b40211320fb30826a76cb7a0da6400"
 dependencies = [
  "bitflags",
  "block",
@@ -691,7 +694,7 @@ checksum = "f4ffc801dacf156c5854b9df4f425a626539c3a6ef7893cc0c5084a23f0b6c59"
 dependencies = [
  "atty",
  "lazy_static",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -783,15 +786,16 @@ dependencies = [
 ]
 
 [[package]]
-name = "core-text"
-version = "15.0.0"
+name = "core-video-sys"
+version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "131b3fd1f8bd5db9f2b398fa4fdb6008c64afc04d447c306ac2c7e98fba2a61d"
+checksum = "8dc065219542086f72d1e9f7aadbbab0989e980263695d129d502082d063a9d0"
 dependencies = [
- "core-foundation 0.7.0",
- "core-graphics 0.19.0",
- "foreign-types",
+ "cfg-if",
+ "core-foundation-sys 0.6.2",
+ "core-graphics 0.17.3",
  "libc",
+ "objc",
 ]
 
 [[package]]
@@ -816,18 +820,20 @@ dependencies = [
 [[package]]
 name = "cpal"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b55d55d69f403f62a95bd3c04b431e0aedf5120c70f15d07a8edd234443dd59"
+source = "git+https://github.com/amethyst/cpal?branch=wasm#8b9e1e23188c47d61560fed9d1f53a2e4e699ae6"
 dependencies = [
  "alsa-sys",
  "core-foundation-sys 0.6.2",
  "coreaudio-rs",
+ "js-sys",
  "lazy_static",
  "libc",
  "num-traits 0.2.11",
+ "parking_lot 0.9.0",
  "stdweb 0.1.3",
  "thiserror",
- "winapi",
+ "web-sys",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1005,7 +1011,7 @@ dependencies = [
  "cfg-if",
  "libc",
  "redox_users",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1013,6 +1019,12 @@ name = "discard"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "212d0f5754cb6769937f4501cc0e67f4f4483c8d2c3e1e922ee9edbe4ab4c7c0"
+
+[[package]]
+name = "dispatch"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bd0c93bb4b0c6d9b77f4435b0ae98c24d17f1c45b2ff844c6151a07256ca923b"
 
 [[package]]
 name = "dlib"
@@ -1028,17 +1040,6 @@ name = "downcast-rs"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "52ba6eb47c2131e784a38b726eb54c1e1484904f013e576a25354d0124161af6"
-
-[[package]]
-name = "dwrote"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bd1369e02db5e9b842a9b67bce8a2fcc043beafb2ae8a799dd482d46ea1ff0d"
-dependencies = [
- "lazy_static",
- "libc",
- "winapi",
-]
 
 [[package]]
 name = "edit-distance"
@@ -1086,25 +1087,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "euclid"
-version = "0.20.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57d9ae79e19d69ffb5b47b0a744c4215c115dfed4039314c9ca1b8ddc6c333be"
-dependencies = [
- "num-traits 0.2.11",
-]
-
-[[package]]
-name = "expat-sys"
-version = "2.1.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "658f19728920138342f68408b7cf7644d90d4784353d8ebc32e7e8663dbe45fa"
-dependencies = [
- "cmake",
- "pkg-config",
-]
-
-[[package]]
 name = "failure"
 version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1142,12 +1124,6 @@ name = "fixedbitset"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "37ab347416e802de484e4d03c7316c48f1ecb56574dfd4a46a80f173ce1de04d"
-
-[[package]]
-name = "float-ord"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bad48618fdb549078c333a7a8528acb57af271d0433bdecd523eb620628364e"
 
 [[package]]
 name = "fluent"
@@ -1196,30 +1172,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2fad85553e09a6f881f739c29f0b00b0f01357c743266d478b68951ce23285f3"
 
 [[package]]
-name = "font-kit"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "09b6e2b877097ffd0abac6597fea26fccb5ed7eb9da0a4094f11ccc8aba64efb"
-dependencies = [
- "byteorder",
- "core-foundation 0.7.0",
- "core-graphics 0.19.0",
- "core-text",
- "dirs",
- "dwrote",
- "euclid",
- "float-ord",
- "freetype",
- "lazy_static",
- "libc",
- "log",
- "lyon_path",
- "servo-fontconfig",
- "walkdir",
- "winapi",
-]
-
-[[package]]
 name = "foreign-types"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1235,20 +1187,26 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "00b0228411908ca8685dba7fc2cdd70ec9990a6e753e89b6ac91a84c40fbaf4b"
 
 [[package]]
-name = "freetype"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "11926b2b410b469d0e9399eca4cbbe237a9ef02176c485803b29216307e8e028"
-dependencies = [
- "libc",
- "servo-freetype-sys",
-]
-
-[[package]]
 name = "fuchsia-cprng"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a06f77d526c1a601b7c4cdd98f54b5eaabffc14d5f2f0296febdc7f357c6d3ba"
+
+[[package]]
+name = "fuchsia-zircon"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2e9763c69ebaae630ba35f74888db465e49e259ba1bc0eda7d06f4a067615d82"
+dependencies = [
+ "bitflags",
+ "fuchsia-zircon-sys",
+]
+
+[[package]]
+name = "fuchsia-zircon-sys"
+version = "0.3.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3dcaa9ae7725d12cdb85b3ad99a434db70b468c09ded17e012d86b5c1010f7a7"
 
 [[package]]
 name = "fxhash"
@@ -1311,34 +1269,30 @@ dependencies = [
 
 [[package]]
 name = "gfx-backend-vulkan"
-version = "0.3.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5facf0b6e4306a6a93682077f85602c89b49aca8ecceb73b9558e7baa37f8c54"
+version = "0.5.0"
+source = "git+https://github.com/amethyst/gfx?branch=wasm#c4b75d3d17f2fad7bd7ea93c8be8a92a6329d972"
 dependencies = [
+ "arrayvec 0.5.1",
  "ash",
  "byteorder",
- "core-graphics 0.17.3",
- "derivative 1.0.4",
+ "core-graphics 0.19.0",
  "gfx-hal",
  "lazy_static",
  "log",
  "objc",
- "raw-window-handle 0.1.2",
- "smallvec 0.6.13",
- "winapi",
- "winit",
+ "raw-window-handle",
+ "smallvec 1.2.0",
+ "winapi 0.3.8",
  "x11",
 ]
 
 [[package]]
 name = "gfx-hal"
-version = "0.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "00a079b66250a6437c3822c8bfc25e5bed5ba0186d312e7df87bc503325ab33c"
+version = "0.5.0"
+source = "git+https://github.com/amethyst/gfx?branch=wasm#c4b75d3d17f2fad7bd7ea93c8be8a92a6329d972"
 dependencies = [
  "bitflags",
- "failure",
- "fxhash",
+ "raw-window-handle",
  "serde",
 ]
 
@@ -1460,24 +1414,6 @@ checksum = "8a164bb2ceaeff4f42542bdb847c41517c78a60f5649671b2a07312b6e117549"
 
 [[package]]
 name = "image"
-version = "0.21.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35371e467cd7b0b3d1d6013d619203658467df12d61b0ca43cd67b743b1965eb"
-dependencies = [
- "byteorder",
- "gif",
- "jpeg-decoder",
- "lzw",
- "num-iter",
- "num-rational",
- "num-traits 0.2.11",
- "png 0.14.1",
- "scoped_threadpool",
- "tiff 0.2.2",
-]
-
-[[package]]
-name = "image"
 version = "0.22.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08ed2ada878397b045454ac7cfb011d73132c59f31a955d230bd1f1c2e68eb4a"
@@ -1488,9 +1424,9 @@ dependencies = [
  "num-iter",
  "num-rational",
  "num-traits 0.2.11",
- "png 0.15.3",
+ "png",
  "scoped_threadpool",
- "tiff 0.3.1",
+ "tiff",
 ]
 
 [[package]]
@@ -1519,6 +1455,7 @@ checksum = "6c346c299e3fe8ef94dc10c2c0253d858a69aac1245157a3bf4125915d528caf"
 dependencies = [
  "stdweb 0.4.20",
  "time",
+ "web-sys",
 ]
 
 [[package]]
@@ -1564,6 +1501,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "iovec"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2b3ea6ff95e175473f8ffe6a7eb7c00d054240321b84c57051175fe3c1e075e"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "itertools"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1586,6 +1532,25 @@ checksum = "0256f0aec7352539102a9efbcb75543227b7ab1117e0f95450023af730128451"
 dependencies = [
  "byteorder",
  "rayon",
+]
+
+[[package]]
+name = "js-sys"
+version = "0.3.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6a27d435371a2fa5b6d2b028a74bbdb1234f308da363226a2854ca3ff8ba7055"
+dependencies = [
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "kernel32-sys"
+version = "0.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
+dependencies = [
+ "winapi 0.2.8",
+ "winapi-build",
 ]
 
 [[package]]
@@ -1663,7 +1628,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2b111a074963af1d37a139918ac6d49ad1d0d5e47f72fd55388619691a7d753"
 dependencies = [
  "cc",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1707,39 +1672,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "lyon_geom"
-version = "0.14.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca04310c9807612a311506106000b6eccb2e27bca9bfb594ce80fb8a31231f9d"
-dependencies = [
- "arrayvec 0.4.12",
- "euclid",
- "num-traits 0.2.11",
-]
-
-[[package]]
-name = "lyon_path"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0bcb57ac24a5428539e2c7c0592766d5933c937d703f430990c669c00de96862"
-dependencies = [
- "lyon_geom",
-]
-
-[[package]]
 name = "lzw"
 version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
-
-[[package]]
-name = "mach"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b823e83b2affd8f40a9ee8c29dbc56404c1e34cd2710921f2801e2cf29527afa"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "malloc_buf"
@@ -1778,7 +1714,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6585fd95e7bb50d6cc31e20d4cf9afb4e2ba16c5846fc76793f11218da9c475b"
 dependencies = [
  "libc",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -1788,25 +1724,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4fc2c02a7e374099d4ee95a193111f72d2110197fe200272371758f6c3643d8"
 dependencies = [
  "autocfg 1.0.0",
-]
-
-[[package]]
-name = "minimp3"
-version = "0.3.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dce0cff6a0bfd3f8b6b2350819bbddd63bc65cc45e53888bdd0ff49dde16d2d5"
-dependencies = [
- "minimp3-sys",
- "slice-deque",
-]
-
-[[package]]
-name = "minimp3-sys"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e21c73734c69dc95696c9ed8926a2b393171d98b3f5f5935686a26a487ab9b90"
-dependencies = [
- "cc",
 ]
 
 [[package]]
@@ -1824,6 +1741,49 @@ dependencies = [
  "mint",
  "num",
  "serde",
+]
+
+[[package]]
+name = "mio"
+version = "0.6.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "302dec22bcf6bae6dfb69c647187f4b4d0fb6f535521f7bc022430ce8e12008f"
+dependencies = [
+ "cfg-if",
+ "fuchsia-zircon",
+ "fuchsia-zircon-sys",
+ "iovec",
+ "kernel32-sys",
+ "libc",
+ "log",
+ "miow",
+ "net2",
+ "slab",
+ "winapi 0.2.8",
+]
+
+[[package]]
+name = "mio-extras"
+version = "2.0.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "52403fe290012ce777c4626790c8951324a2b9e3316b3143779c72b029742f19"
+dependencies = [
+ "lazycell",
+ "log",
+ "mio",
+ "slab",
+]
+
+[[package]]
+name = "miow"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8c1f2f3b1cf331de6896aabf6e9d55dca90356cc9960cca7eaaf408a355ae919"
+dependencies = [
+ "kernel32-sys",
+ "net2",
+ "winapi 0.2.8",
+ "ws2_32-sys",
 ]
 
 [[package]]
@@ -1888,6 +1848,17 @@ dependencies = [
  "slab",
  "slotmap",
  "smallvec 1.2.0",
+]
+
+[[package]]
+name = "net2"
+version = "0.2.33"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42550d9fb7b6684a6d404d9fa7250c2eb2646df731d1c06afc06dcee9e1bcf88"
+dependencies = [
+ "cfg-if",
+ "libc",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2161,7 +2132,7 @@ dependencies = [
  "redox_syscall",
  "rustc_version",
  "smallvec 0.6.13",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2175,7 +2146,7 @@ dependencies = [
  "libc",
  "redox_syscall",
  "smallvec 1.2.0",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2265,18 +2236,6 @@ name = "pkg-config"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "05da548ad6865900e60eaba7f589cc0783590a92e940c26953ff81ddbab2d677"
-
-[[package]]
-name = "png"
-version = "0.14.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63daf481fdd0defa2d1d2be15c674fbfa1b0fd71882c303a91f9a79b3252c359"
-dependencies = [
- "bitflags",
- "deflate",
- "inflate",
- "num-iter",
-]
 
 [[package]]
 name = "png"
@@ -2406,7 +2365,7 @@ dependencies = [
  "libc",
  "rand_core 0.3.1",
  "rdrand",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2425,7 +2384,7 @@ dependencies = [
  "rand_os",
  "rand_pcg 0.1.2",
  "rand_xorshift",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2529,7 +2488,7 @@ checksum = "1166d5c91dc97b88d1decc3285bb0a99ed84b05cfd0bc2341bdf2d43fc41e39b"
 dependencies = [
  "libc",
  "rand_core 0.4.2",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2543,7 +2502,7 @@ dependencies = [
  "libc",
  "rand_core 0.4.2",
  "rdrand",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -2572,15 +2531,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cbf7e9e623549b0e21f6e97cf8ecf247c1a8fd2e8a992ae265314300b2455d5c"
 dependencies = [
  "rand_core 0.3.1",
-]
-
-[[package]]
-name = "raw-window-handle"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "af3d3b2e1053b3ff2171efc29a8bff3439ce6b2ce6a0432695134bc1c7ff8e87"
-dependencies = [
- "libc",
 ]
 
 [[package]]
@@ -2679,263 +2629,233 @@ dependencies = [
 
 [[package]]
 name = "rendy"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6638bafecd2ebbc9b092d887b7daf46187aac9e03ee7dfc9bf1a361e2568d663"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "failure",
- "gfx-hal",
  "rendy-command",
+ "rendy-core",
  "rendy-descriptor",
  "rendy-factory",
  "rendy-frame",
  "rendy-graph",
+ "rendy-init",
  "rendy-memory",
  "rendy-mesh",
  "rendy-resource",
  "rendy-shader",
  "rendy-texture",
- "rendy-util",
  "rendy-wsi",
  "thread_profiler",
 ]
 
 [[package]]
 name = "rendy-chain"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0c2d2019852820618ae7e08302d4b250f59b8b92ca93f92b730630c90e4c6dad"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "gfx-hal",
  "log",
+ "rendy-core",
  "thread_profiler",
 ]
 
 [[package]]
 name = "rendy-command"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94a32282d82bd3ef04c15edf3d6762a8bea38a6575490344188a9bbb110c6c6a"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
- "failure",
- "gfx-hal",
  "relevant",
- "rendy-util",
- "smallvec 0.6.13",
+ "rendy-core",
+ "smallvec 1.2.0",
+ "thread_profiler",
+]
+
+[[package]]
+name = "rendy-core"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
+dependencies = [
+ "gfx-backend-vulkan",
+ "gfx-hal",
+ "lazy_static",
+ "log",
+ "parking_lot 0.9.0",
+ "raw-window-handle",
+ "serde",
  "thread_profiler",
 ]
 
 [[package]]
 name = "rendy-descriptor"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca7bcc3cb86a7945ecc5f0d7121e47a0b5979c3c57d3a5e6facc8738338651d8"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
- "failure",
+ "fxhash",
  "gfx-hal",
  "log",
  "relevant",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
 ]
 
 [[package]]
 name = "rendy-factory"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a733600fa7aa962919999ffe20bbf3f9c1c36230fedd9abf9e78caffe9db7093"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
  "either",
- "failure",
- "gfx-hal",
  "log",
  "parking_lot 0.9.0",
  "relevant",
  "rendy-command",
+ "rendy-core",
  "rendy-descriptor",
  "rendy-memory",
  "rendy-resource",
- "rendy-util",
  "rendy-wsi",
  "serde",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
  "thread_profiler",
 ]
 
 [[package]]
 name = "rendy-frame"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "417485444f959d67f3b1ec5ad7de340e389548ab404df0bb809bc821128660d3"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
  "either",
- "failure",
- "gfx-hal",
  "log",
  "relevant",
  "rendy-command",
+ "rendy-core",
  "rendy-factory",
  "rendy-memory",
  "rendy-resource",
- "rendy-util",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
  "thread_profiler",
 ]
 
 [[package]]
 name = "rendy-graph"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b34a289735fd2a15482aaf9fb5ba824678768dd985e7d17545a7354836d5ebd4"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
  "bitflags",
- "derivative 1.0.4",
  "either",
- "failure",
- "gfx-hal",
  "log",
  "relevant",
  "rendy-chain",
  "rendy-command",
+ "rendy-core",
  "rendy-descriptor",
  "rendy-factory",
  "rendy-frame",
  "rendy-memory",
  "rendy-resource",
  "rendy-shader",
- "rendy-util",
  "rendy-wsi",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
  "thread_profiler",
 ]
 
 [[package]]
+name = "rendy-init"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
+dependencies = [
+ "log",
+ "rendy-command",
+ "rendy-core",
+ "rendy-factory",
+ "rendy-wsi",
+ "smallvec 1.2.0",
+ "web-sys",
+ "winit",
+]
+
+[[package]]
 name = "rendy-memory"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cf6b3fc8a012b69062419caf086d35f83d9af57bf30a6971691731b4816a47f"
+version = "0.5.3"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
  "colorful",
- "derivative 1.0.4",
- "failure",
  "gfx-hal",
  "hibitset",
  "log",
  "relevant",
  "serde",
  "slab",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
 ]
 
 [[package]]
 name = "rendy-mesh"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "026bd3424909de2bc28bf9422036db46e0e302c3ada84f0a5a61c8dab914161c"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "failure",
- "gfx-hal",
  "log",
  "rendy-command",
+ "rendy-core",
  "rendy-factory",
  "rendy-memory",
  "rendy-resource",
- "rendy-util",
  "serde",
  "serde_bytes",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
  "wavefront_obj",
 ]
 
 [[package]]
 name = "rendy-resource"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3c94df60f828ae6e0c9f50bf0faeaf0125ef728ec66029c25d59c91fd6d41ee"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
  "crossbeam-channel 0.3.9",
- "derivative 1.0.4",
- "failure",
- "gfx-hal",
  "log",
  "relevant",
+ "rendy-core",
  "rendy-descriptor",
  "rendy-memory",
- "rendy-util",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
 ]
 
 [[package]]
 name = "rendy-shader"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dd3a577f3b58cd2ea98f4480d32493d80f8c3aaf1852388efec58c33d3ac222"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
- "failure",
- "gfx-hal",
  "log",
+ "rendy-core",
  "rendy-factory",
- "rendy-util",
  "serde",
- "smallvec 0.6.13",
+ "smallvec 1.2.0",
 ]
 
 [[package]]
 name = "rendy-texture"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "911dbc17c26ec93c8cfecf6a82e5e288d503183e46ac57c7395826aea2bf259f"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
- "failure",
- "gfx-hal",
- "image 0.22.5",
+ "image",
  "log",
  "palette",
+ "rendy-core",
  "rendy-factory",
  "rendy-memory",
  "rendy-resource",
- "rendy-util",
- "serde",
- "thread_profiler",
-]
-
-[[package]]
-name = "rendy-util"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa01882dc9f3f64684393724d0d49d2315b612eeeb029eded2181385d796c75f"
-dependencies = [
- "derivative 1.0.4",
- "gfx-backend-vulkan",
- "gfx-hal",
- "lazy_static",
- "log",
- "parking_lot 0.9.0",
  "serde",
  "thread_profiler",
 ]
 
 [[package]]
 name = "rendy-wsi"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9954dda560d8d5fbf619a46b0619aa6e0f990bd439ab974641bdbe99a5f9c93f"
+version = "0.5.1"
+source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "derivative 1.0.4",
- "failure",
- "gfx-hal",
  "log",
  "relevant",
+ "rendy-core",
  "rendy-memory",
  "rendy-resource",
- "rendy-util",
- "smallvec 0.6.13",
- "winit",
+ "smallvec 1.2.0",
 ]
 
 [[package]]
@@ -2962,15 +2882,12 @@ dependencies = [
 [[package]]
 name = "rodio"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "73bbf260262fd5501b7a17d6827e0d25c1127e921eb177150a060faf6e217a70"
+source = "git+https://github.com/amethyst/rodio?branch=wasm#1a761697ac2e72f7b2af772c8a257ee75f29bac9"
 dependencies = [
  "claxon",
  "cpal",
  "hound",
- "lazy_static",
  "lewton",
- "minimp3",
 ]
 
 [[package]]
@@ -3147,51 +3064,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "servo-fontconfig"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a088f8d775a5c5314aae09bd77340bc9c67d72b9a45258be34c83548b4814cd9"
-dependencies = [
- "libc",
- "servo-fontconfig-sys",
-]
-
-[[package]]
-name = "servo-fontconfig-sys"
-version = "4.0.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62b3e166450f523f4db06c14f02a2d39e76d49b5d8cbd224338d93e3595c156c"
-dependencies = [
- "expat-sys",
- "pkg-config",
- "servo-freetype-sys",
-]
-
-[[package]]
-name = "servo-freetype-sys"
-version = "4.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c4ccb6d0d32d277d3ef7dea86203d8210945eb7a45fba89dd445b3595dd0dfc"
-dependencies = [
- "cmake",
- "pkg-config",
-]
-
-[[package]]
 name = "sha1"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2579985fda508104f7587689507983eadd6a6e84dd35d6d115361f530916fa0d"
-
-[[package]]
-name = "shared_library"
-version = "0.1.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a9e7e0f2bfae24d8a5b5a66c5b257a83c7412304311512a0c054cd5e619da11"
-dependencies = [
- "lazy_static",
- "libc",
-]
 
 [[package]]
 name = "shlex"
@@ -3244,17 +3120,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
 
 [[package]]
-name = "slice-deque"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "31ef6ee280cdefba6d2d0b4b78a84a1c1a3f3a4cec98c2d4231c8bc225de0f25"
-dependencies = [
- "libc",
- "mach",
- "winapi",
-]
-
-[[package]]
 name = "slotmap"
 version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3267,7 +3132,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f7b0758c52e15a8b5e3691eae6cc559f08eee9406e548a4477ba4e67770a82b6"
 dependencies = [
  "maybe-uninit",
- "serde",
 ]
 
 [[package]]
@@ -3281,9 +3145,9 @@ dependencies = [
 
 [[package]]
 name = "smithay-client-toolkit"
-version = "0.4.6"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2ccb8c57049b2a34d2cc2b203fa785020ba0129d31920ef0d317430adaf748fa"
+checksum = "421c8dc7acf5cb205b88160f8b4cc2c5cfabe210e43b2f80f009f4c1ef910f1d"
 dependencies = [
  "andrew",
  "bitflags",
@@ -3292,7 +3156,6 @@ dependencies = [
  "memmap",
  "nix",
  "wayland-client",
- "wayland-commons",
  "wayland-protocols",
 ]
 
@@ -3532,18 +3395,6 @@ dependencies = [
 
 [[package]]
 name = "tiff"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e4834f28a0330cb9f3f2c87d2649dca723cb33802e2bdcf18da32759fbec7ce"
-dependencies = [
- "byteorder",
- "lzw",
- "num-derive",
- "num-traits 0.2.11",
-]
-
-[[package]]
-name = "tiff"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d7b7c2cfc4742bd8a32f2e614339dd8ce30dbcf676bb262bd63a2327bc5df57d"
@@ -3562,7 +3413,7 @@ checksum = "db8dcfca086c1143c9270ac42a2bbd8a7ee477b78ac8e45b19abfb0cbede4b6f"
 dependencies = [
  "libc",
  "redox_syscall",
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -3724,7 +3575,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "777182bc735b6424e1a57516d35ed72cb8019d85c8c9bf536dccb3445c1a2f7d"
 dependencies = [
  "same-file",
- "winapi",
+ "winapi 0.3.8",
  "winapi-util",
 ]
 
@@ -3799,13 +3650,15 @@ dependencies = [
 
 [[package]]
 name = "wayland-client"
-version = "0.21.13"
+version = "0.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "49963e5f9eeaf637bfcd1b9f0701c99fd5cd05225eb51035550d4272806f2713"
+checksum = "af1080ebe0efabcf12aef2132152f616038f2d7dcbbccf7b2d8c5270fe14bcda"
 dependencies = [
  "bitflags",
+ "calloop",
  "downcast-rs",
  "libc",
+ "mio",
  "nix",
  "wayland-commons",
  "wayland-scanner",
@@ -3814,9 +3667,9 @@ dependencies = [
 
 [[package]]
 name = "wayland-commons"
-version = "0.21.13"
+version = "0.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "40c08896768b667e1df195d88a62a53a2d1351a1ed96188be79c196b35bb32ec"
+checksum = "bb66b0d1a27c39bbce712b6372131c6e25149f03ffb0cd017cf8f7de8d66dbdb"
 dependencies = [
  "nix",
  "wayland-sys",
@@ -3824,22 +3677,21 @@ dependencies = [
 
 [[package]]
 name = "wayland-protocols"
-version = "0.21.13"
+version = "0.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4afde2ea2a428eee6d7d2c8584fdbe8b82eee8b6c353e129a434cd6e07f42145"
+checksum = "6cc286643656742777d55dc8e70d144fa4699e426ca8e9d4ef454f4bf15ffcf9"
 dependencies = [
  "bitflags",
  "wayland-client",
  "wayland-commons",
  "wayland-scanner",
- "wayland-sys",
 ]
 
 [[package]]
 name = "wayland-scanner"
-version = "0.21.13"
+version = "0.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf3828c568714507315ee425a9529edc4a4aa9901409e373e9e0027e7622b79e"
+checksum = "93b02247366f395b9258054f964fe293ddd019c3237afba9be2ccbe9e1651c3d"
 dependencies = [
  "proc-macro2 0.4.30",
  "quote 0.6.13",
@@ -3848,13 +3700,29 @@ dependencies = [
 
 [[package]]
 name = "wayland-sys"
-version = "0.21.13"
+version = "0.23.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "520ab0fd578017a0ee2206623ba9ef4afe5e8f23ca7b42f6acfba2f4e66b1628"
+checksum = "d94e89a86e6d6d7c7c9b19ebf48a03afaac4af6bc22ae570e9a24124b75358f4"
 dependencies = [
  "dlib",
  "lazy_static",
 ]
+
+[[package]]
+name = "web-sys"
+version = "0.3.37"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d6f51648d8c56c366144378a33290049eafdd784071077f6fe37dae64c1c4cb"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "winapi"
+version = "0.2.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "167dc9d6949a9b857f3451275e911c3f44255842c1f7a76f33c55103a909087a"
 
 [[package]]
 name = "winapi"
@@ -3865,6 +3733,12 @@ dependencies = [
  "winapi-i686-pc-windows-gnu",
  "winapi-x86_64-pc-windows-gnu",
 ]
+
+[[package]]
+name = "winapi-build"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d315eee3b34aca4797b2da6b13ed88266e6d612562a0c46390af8299fc699bc"
 
 [[package]]
 name = "winapi-i686-pc-windows-gnu"
@@ -3878,7 +3752,7 @@ version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ccfbf554c6ad11084fb7517daca16cfdcaccbdadba4fc336f032a8b12c2ad80"
 dependencies = [
- "winapi",
+ "winapi 0.3.8",
 ]
 
 [[package]]
@@ -3889,29 +3763,43 @@ checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "winit"
-version = "0.19.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e96eb4bb472fa43e718e8fa4aef82f86cd9deac9483a1e1529230babdb394a8"
+version = "0.22.0"
+source = "git+https://github.com/amethyst/winit.git?branch=wasm#a0be77f51776dfa3545650d1805728e2133a58c3"
 dependencies = [
  "android_glue",
- "backtrace",
  "bitflags",
  "cocoa",
  "core-foundation 0.6.4",
  "core-graphics 0.17.3",
- "image 0.21.3",
+ "core-video-sys",
+ "dispatch",
+ "instant",
  "lazy_static",
  "libc",
  "log",
+ "mio",
+ "mio-extras",
  "objc",
- "parking_lot 0.9.0",
+ "parking_lot 0.10.0",
  "percent-encoding",
- "raw-window-handle 0.3.3",
+ "raw-window-handle",
  "serde",
  "smithay-client-toolkit",
+ "wasm-bindgen",
  "wayland-client",
- "winapi",
+ "web-sys",
+ "winapi 0.3.8",
  "x11-dl",
+]
+
+[[package]]
+name = "ws2_32-sys"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
+dependencies = [
+ "winapi 0.2.8",
+ "winapi-build",
 ]
 
 [[package]]

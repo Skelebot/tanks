@@ -6,13 +6,15 @@ use amethyst::{
     core::frame_limiter::FrameRateLimitStrategy,
     prelude::*,
     renderer::{
-        plugins::{RenderFlat2D, RenderToWindow},
+        plugins::RenderToWindow,
+        rendy::hal::command::ClearColor,
         types::DefaultBackend,
         RenderingBundle,
     },
     input::{InputBundle, StringBindings},
     utils::application_root_dir,
     ui::{RenderUi, UiBundle},
+    window::{DisplayConfig, EventLoop},
 };
 use std::time::Duration;
 
@@ -35,12 +37,14 @@ fn main() -> amethyst::Result<()> {
     let resources = app_root.join("res");
 
     let config = resources.join("config");
-    let display_config_path = config.join("display.ron");
+    let display_config = DisplayConfig::load(&config.join("display.ron"))?;
     let tank_config = config::TankConfig::load(&config.join("tank.ron")).expect("Failed to load TankConfig");
     let maze_config = config::MazeConfig::load(&config.join("maze.ron")).expect("Failed to load MazeConfig");
 
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
+
+    let event_loop = EventLoop::new();
 
     let game_data = GameDataBuilder::default()
         .with_bundle(TransformBundle::new())?
@@ -56,13 +60,13 @@ fn main() -> amethyst::Result<()> {
         .with(physics::StepperSystem, "stepper_system", &["destroy_system"])
         .with(physics::PTTSystem, "physics_to_transform_system", &["stepper_system"])
         .with_bundle(
-            RenderingBundle::<DefaultBackend>::new()
+            RenderingBundle::<DefaultBackend>::new(display_config, &event_loop)
                 .with_plugin(
-                    RenderToWindow::from_config_path(display_config_path)?
-                        //.with_clear([0.918, 0.918, 0.918])    //light background
-                        .with_clear([0.0145, 0.0165, 0.0204])   //dark background
-                )
-                .with_plugin(RenderFlat2D::default())
+                    RenderToWindow::new().with_clear(ClearColor {
+                        // float32: [0.918, 0.918, 0.918, 1.0]    //light background
+                        float32: [0.0145, 0.0165, 0.0204, 1.0]   //dark background
+                    }))
+                .with_plugin(graphics::RenderFlat2D::default())
                 .with_plugin(RenderUi::default())
         )?;
 
@@ -74,7 +78,7 @@ fn main() -> amethyst::Result<()> {
             60
         )
         .build(game_data)?;
+    // game.run_winit_loop(event_loop);
     game.run();
-
     Ok(())
 }

@@ -203,5 +203,6 @@ impl MazeLevel {
                 .with(wall_collider, &mut colliders)
                 .build();
         }
+        println!("size: {:?}", (screen_dimensions.width(), screen_dimensions.height()));
     }
 }
