@@ -415,15 +415,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
 
 [[package]]
-name = "ash"
-version = "0.30.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69daec0742947f33a85931fa3cb0ce5f07929159dcbd1f0cbb5b2912e2978509"
-dependencies = [
- "libloading",
-]
-
-[[package]]
 name = "atom"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -595,6 +586,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4785bdd1c96b2a846b2bd7cc02e86b6b3dbf14e7e53446c4f54c92a361040822"
 
 [[package]]
+name = "cgl"
+version = "0.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ced0551234e87afee12411d535648dd89d2e7f34c78b753395567aff3d447ff"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "cgmath"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -673,8 +673,8 @@ checksum = "f29f7768b2d1be17b96158e3285951d366b40211320fb30826a76cb7a0da6400"
 dependencies = [
  "bitflags",
  "block",
- "core-foundation 0.6.4",
- "core-graphics 0.17.3",
+ "core-foundation",
+ "core-graphics",
  "foreign-types",
  "libc",
  "objc",
@@ -735,17 +735,7 @@ version = "0.6.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25b9e03f145fd4f2bf705e07b900cd41fc636598fe5dc452fd0db1441c3f496d"
 dependencies = [
- "core-foundation-sys 0.6.2",
- "libc",
-]
-
-[[package]]
-name = "core-foundation"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57d24c7a13c43e870e37c1556b74555437870a04514f7685f5b354e090567171"
-dependencies = [
- "core-foundation-sys 0.7.0",
+ "core-foundation-sys",
  "libc",
 ]
 
@@ -756,31 +746,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e7ca8a5221364ef15ce201e8ed2f609fc312682a8f4e0e3d4aa5879764e0fa3b"
 
 [[package]]
-name = "core-foundation-sys"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3a71ab494c0b5b860bdc8407ae08978052417070c2ced38573a9157ad75b8ac"
-
-[[package]]
 name = "core-graphics"
 version = "0.17.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "56790968ab1c8a1202a102e6de05fc6e1ec87da99e4e93e9a7d13efbfc1e95a9"
 dependencies = [
  "bitflags",
- "core-foundation 0.6.4",
- "foreign-types",
- "libc",
-]
-
-[[package]]
-name = "core-graphics"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "59e78b2e0aaf43f08e7ae0d6bc96895ef72ff0921c7d4ff4762201b2dba376dd"
-dependencies = [
- "bitflags",
- "core-foundation 0.7.0",
+ "core-foundation",
  "foreign-types",
  "libc",
 ]
@@ -792,8 +764,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8dc065219542086f72d1e9f7aadbbab0989e980263695d129d502082d063a9d0"
 dependencies = [
  "cfg-if",
- "core-foundation-sys 0.6.2",
- "core-graphics 0.17.3",
+ "core-foundation-sys",
+ "core-graphics",
  "libc",
  "objc",
 ]
@@ -823,7 +795,7 @@ version = "0.11.0"
 source = "git+https://github.com/amethyst/cpal?branch=wasm#8b9e1e23188c47d61560fed9d1f53a2e4e699ae6"
 dependencies = [
  "alsa-sys",
- "core-foundation-sys 0.6.2",
+ "core-foundation-sys",
  "coreaudio-rs",
  "js-sys",
  "lazy_static",
@@ -1268,22 +1240,37 @@ dependencies = [
 ]
 
 [[package]]
-name = "gfx-backend-vulkan"
+name = "gfx-auxil"
+version = "0.3.0"
+source = "git+https://github.com/amethyst/gfx?branch=wasm#c4b75d3d17f2fad7bd7ea93c8be8a92a6329d972"
+dependencies = [
+ "fxhash",
+ "gfx-hal",
+ "spirv_cross",
+]
+
+[[package]]
+name = "gfx-backend-gl"
 version = "0.5.0"
 source = "git+https://github.com/amethyst/gfx?branch=wasm#c4b75d3d17f2fad7bd7ea93c8be8a92a6329d972"
 dependencies = [
  "arrayvec 0.5.1",
- "ash",
- "byteorder",
- "core-graphics 0.19.0",
+ "bitflags",
+ "gfx-auxil",
  "gfx-hal",
+ "gl_generator 0.11.0",
+ "glow",
+ "glutin",
+ "js-sys",
  "lazy_static",
  "log",
- "objc",
+ "parking_lot 0.10.0",
  "raw-window-handle",
  "smallvec 1.2.0",
+ "spirv_cross",
+ "wasm-bindgen",
+ "web-sys",
  "winapi 0.3.8",
- "x11",
 ]
 
 [[package]]
@@ -1318,10 +1305,45 @@ dependencies = [
 ]
 
 [[package]]
+name = "gl_generator"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39a23d5e872a275135d66895d954269cf5e8661d234eb1c2480f4ce0d586acbd"
+dependencies = [
+ "khronos_api",
+ "log",
+ "xml-rs",
+]
+
+[[package]]
+name = "gl_generator"
+version = "0.13.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ca98bbde17256e02d17336a6bdb5a50f7d0ccacee502e191d3e3d0ec2f96f84a"
+dependencies = [
+ "khronos_api",
+ "log",
+ "xml-rs",
+]
+
+[[package]]
 name = "glob"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b919933a397b79c37e33b77bb2aa3dc8eb6e165ad809e58ff75bc7db2e34574"
+
+[[package]]
+name = "glow"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "31aed196700daf16e1241d819ff4a4855a78ee0cddb051948d50b9213deec82f"
+dependencies = [
+ "gl_generator 0.13.1",
+ "js-sys",
+ "slotmap 0.3.0",
+ "wasm-bindgen",
+ "web-sys",
+]
 
 [[package]]
 name = "glsl-layout"
@@ -1341,6 +1363,72 @@ dependencies = [
  "proc-macro2 1.0.9",
  "quote 1.0.3",
  "syn 1.0.17",
+]
+
+[[package]]
+name = "glutin"
+version = "0.24.0"
+source = "git+https://github.com/amethyst/glutin.git?branch=wasm#f29d87a36ce77259695a704458b66a41913fbcca"
+dependencies = [
+ "android_glue",
+ "cgl",
+ "cocoa",
+ "core-foundation",
+ "core-graphics",
+ "glutin_egl_sys",
+ "glutin_emscripten_sys",
+ "glutin_gles2_sys",
+ "glutin_glx_sys",
+ "glutin_wgl_sys",
+ "lazy_static",
+ "libloading",
+ "log",
+ "objc",
+ "osmesa-sys",
+ "parking_lot 0.10.0",
+ "wayland-client",
+ "winapi 0.3.8",
+ "winit",
+]
+
+[[package]]
+name = "glutin_egl_sys"
+version = "0.1.4"
+source = "git+https://github.com/amethyst/glutin.git?branch=wasm#f29d87a36ce77259695a704458b66a41913fbcca"
+dependencies = [
+ "gl_generator 0.13.1",
+ "winapi 0.3.8",
+]
+
+[[package]]
+name = "glutin_emscripten_sys"
+version = "0.1.1"
+source = "git+https://github.com/amethyst/glutin.git?branch=wasm#f29d87a36ce77259695a704458b66a41913fbcca"
+
+[[package]]
+name = "glutin_gles2_sys"
+version = "0.1.4"
+source = "git+https://github.com/amethyst/glutin.git?branch=wasm#f29d87a36ce77259695a704458b66a41913fbcca"
+dependencies = [
+ "gl_generator 0.13.1",
+ "objc",
+]
+
+[[package]]
+name = "glutin_glx_sys"
+version = "0.1.6"
+source = "git+https://github.com/amethyst/glutin.git?branch=wasm#f29d87a36ce77259695a704458b66a41913fbcca"
+dependencies = [
+ "gl_generator 0.13.1",
+ "x11-dl",
+]
+
+[[package]]
+name = "glutin_wgl_sys"
+version = "0.1.4"
+source = "git+https://github.com/amethyst/glutin.git?branch=wasm#f29d87a36ce77259695a704458b66a41913fbcca"
+dependencies = [
+ "gl_generator 0.13.1",
 ]
 
 [[package]]
@@ -1552,6 +1640,12 @@ dependencies = [
  "winapi 0.2.8",
  "winapi-build",
 ]
+
+[[package]]
+name = "khronos_api"
+version = "3.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2db585e1d738fc771bf08a151420d3ed193d9d895a36df7f6f8a9456b911ddc"
 
 [[package]]
 name = "laminar"
@@ -1846,7 +1940,7 @@ dependencies = [
  "num-traits 0.2.11",
  "petgraph",
  "slab",
- "slotmap",
+ "slotmap 0.4.0",
  "smallvec 1.2.0",
 ]
 
@@ -1907,7 +2001,7 @@ dependencies = [
  "nalgebra 0.20.0",
  "ncollide2d",
  "num-traits 0.2.11",
- "slotmap",
+ "slotmap 0.4.0",
  "smallvec 1.2.0",
  "stdweb 0.4.20",
 ]
@@ -2072,6 +2166,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "18869315e81473c951eb56ad5558bbc56978562d3ecfb87abb7a1e944cea4518"
 dependencies = [
  "num-traits 0.2.11",
+]
+
+[[package]]
+name = "osmesa-sys"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "88cfece6e95d2e717e0872a7f53a8684712ad13822a7979bc760b9c77ec0013b"
+dependencies = [
+ "shared_library",
 ]
 
 [[package]]
@@ -2674,7 +2777,7 @@ name = "rendy-core"
 version = "0.5.1"
 source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
- "gfx-backend-vulkan",
+ "gfx-backend-gl",
  "gfx-hal",
  "lazy_static",
  "log",
@@ -3070,6 +3173,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2579985fda508104f7587689507983eadd6a6e84dd35d6d115361f530916fa0d"
 
 [[package]]
+name = "shared_library"
+version = "0.1.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a9e7e0f2bfae24d8a5b5a66c5b257a83c7412304311512a0c054cd5e619da11"
+dependencies = [
+ "lazy_static",
+ "libc",
+]
+
+[[package]]
 name = "shlex"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3118,6 +3231,12 @@ name = "slab"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c111b5bd5695e56cffe5129854aa230b39c93a305372fdbb2668ca2394eea9f8"
+
+[[package]]
+name = "slotmap"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "759fd553261805f128e2900bf69ab3d034260bc338caf7f0ee54dbf035c85acd"
 
 [[package]]
 name = "slotmap"
@@ -3196,6 +3315,17 @@ dependencies = [
  "hibitset",
  "shrev",
  "specs",
+]
+
+[[package]]
+name = "spirv_cross"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "946216f8793f7199e3ea5b995ee8dc20a0ace1fcf46293a0ef4c17e1d046dbde"
+dependencies = [
+ "cc",
+ "js-sys",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -3769,8 +3899,8 @@ dependencies = [
  "android_glue",
  "bitflags",
  "cocoa",
- "core-foundation 0.6.4",
- "core-graphics 0.17.3",
+ "core-foundation",
+ "core-graphics",
  "core-video-sys",
  "dispatch",
  "instant",
@@ -3800,16 +3930,6 @@ checksum = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
 dependencies = [
  "winapi 0.2.8",
  "winapi-build",
-]
-
-[[package]]
-name = "x11"
-version = "2.18.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "77ecd092546cb16f25783a5451538e73afc8d32e242648d54f4ae5459ba1e773"
-dependencies = [
- "libc",
- "pkg-config",
 ]
 
 [[package]]

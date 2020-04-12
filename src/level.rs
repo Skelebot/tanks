@@ -64,6 +64,7 @@ impl MazeLevel {
         mut temp_markers: &mut WriteStorage<TempMarker>,
         screen_dimensions: &ScreenDimensions,
      ) {
+        use np::object::Body;
 
         //Determine the shift of everything so that the maze sits in the middle of the screen
         //TODO_VL: Scaling, if the maze cannot fit on the screen or is too small
@@ -116,8 +117,12 @@ impl MazeLevel {
                         x_index == self.maze.width;
 
                     // Create the RigidBody
-                    let rb = if outer { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Static).build() }
-                                 else { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Dynamic).build() };
+                    let mut rb = wall_rb_desc.clone().position(pos).build();
+                    // If the wall is an outer wall or the player doesn't want dynamic walls,
+                    // set the wall's rb status to Static
+                    if outer || !maze_config.dynamic_walls {
+                        rb.set_status(np::object::BodyStatus::Static);
+                    }
 
                     w_pos_rb_h.push((pos, rb, true));
                 }
@@ -142,15 +147,19 @@ impl MazeLevel {
                         x_index == self.maze.width;
 
                     // Create the RigidBody
-                    let rb = if outer { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Static).build() }
-                                 else { wall_rb_desc.clone().position(pos).set_status(np::object::BodyStatus::Dynamic).build() };
+                    let mut rb = wall_rb_desc.clone().position(pos).build();
+                    // If the wall is an outer wall or the player doesn't want dynamic walls,
+                    // set the wall's rb status to Static
+                    if outer || !maze_config.dynamic_walls {
+                        rb.set_status(np::object::BodyStatus::Static);
+                    }
 
                     w_pos_rb_h.push((pos, rb, false));
                 }
             }
         }
 
-        for (pos, mut rb, horizontal) in w_pos_rb_h.drain(..) {
+        for (pos, rb, horizontal) in w_pos_rb_h.drain(..) {
             // Create Physics for the entity
             // Create a renderable sprite
             let sprite_render = SpriteRender {
@@ -184,10 +193,6 @@ impl MazeLevel {
                 ))
                 .density(maze_config.w_density);
 
-            use np::object::Body;
-            use np::object::BodyStatus::{Dynamic, Static};
-            rb.set_status( if maze_config.dynamic_walls { Dynamic } else { Static } );
-
             let wall_body = physics::Body { handle: physics.add_rigid_body(rb) };
             let wall_collider = physics::Collider { 
                 handle: physics.add_collider(wall_collider.build(np::object::BodyPartHandle(wall_body.handle, 0))) 
@@ -203,6 +208,5 @@ impl MazeLevel {
                 .with(wall_collider, &mut colliders)
                 .build();
         }
-        println!("size: {:?}", (screen_dimensions.width(), screen_dimensions.height()));
     }
 }

@@ -17,14 +17,8 @@ use crate::tank::{Tank, Team, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
 use crate::config::TankConfig;
+use crate::config::BeamerConfig;
 use crate::markers::*;
-
-const BEAMER_HEAT_TIME: f32 = 0.5;
-const BEAMER_HEATING_MAX_SCALE: f32 = 23.0;
-const BEAMER_BEAM_WIDTH: f32 = 20.0;
-const BEAMER_SHOOT_TIME: f32 = 1.0;
-const BEAMER_OVERHEAT_TIME: f32 = 2.0;
-const BEAMER_SELF_SAFETY_MARGIN: f32 = 5.0;
 
 pub struct BeamerSystem;
 
@@ -46,6 +40,7 @@ impl<'s> System<'s> for BeamerSystem {
         WriteStorage<'s, DeadlyMarker>,
 
         Read<'s, TankConfig>,
+        Read<'s, BeamerConfig>,
         ReadExpect<'s, ScreenDimensions>,
     );
 
@@ -64,6 +59,7 @@ impl<'s> System<'s> for BeamerSystem {
             mut temp_markers,
             mut deadly_markers,
             tank_config,
+            beamer_config,
             screen_dimensions,
         ): Self::SystemData,
     ) {
@@ -90,7 +86,7 @@ impl<'s> System<'s> for BeamerSystem {
                         // Disabled for testing
                         // body.set_velocity(np::algebra::Velocity2::zero());
 
-                        *heating_progress += time.delta_seconds() / BEAMER_HEAT_TIME;
+                        *heating_progress += time.delta_seconds() / beamer_config.heat_time;
 
                         if heating_square.is_none() {
                             // Initialize the heating square
@@ -139,7 +135,7 @@ impl<'s> System<'s> for BeamerSystem {
                             let beam_length = screen_dimensions.diagonal().norm();
                             // Because the sprite is just one pixel, calculate the scale needed to make it the correct size
                             let scale = amethyst::core::math::Vector3::new(
-                                BEAMER_BEAM_WIDTH,
+                                beamer_config.beam_width,
                                 beam_length,
                                 1.0
                             );
@@ -180,7 +176,7 @@ impl<'s> System<'s> for BeamerSystem {
                             // TODO: Steady force pushing the tank opposite to the shooting direction would be fun
 
                             // Start shooting timer
-                            shooting_timer.replace(BEAMER_SHOOT_TIME);
+                            shooting_timer.replace(beamer_config.shoot_time);
                         }
                     } 
                 }
@@ -197,7 +193,7 @@ impl<'s> System<'s> for BeamerSystem {
                     let trans = body.position().translation.vector.push(0.1)
                         + rotation * na::Vector3::<f32>::new(0.0, tank_config.size_y as f32 / 2.0, 0.1);
 
-                    let scale = *heating_progress * BEAMER_HEATING_MAX_SCALE;
+                    let scale = *heating_progress * beamer_config.heating_max_scale;
 
                     transforms.get_mut(*square).unwrap()
                         .set_translation_xyz(trans.x, trans.y, trans.z)
@@ -217,7 +213,7 @@ impl<'s> System<'s> for BeamerSystem {
                         if let Some(beam_pbody) = bodies.get(*beam) {
                             let rotation = na::UnitComplex::from_angle(body.position().rotation.angle());
                             let trans = body.position().translation.vector
-                                + rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + (transforms.get(*beam).unwrap().scale().y / 2.0) + BEAMER_SELF_SAFETY_MARGIN);
+                                + rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + (transforms.get(*beam).unwrap().scale().y / 2.0) + beamer_config.self_safety_margin);
                             let angle = body.position().rotation.angle();
                             physics.get_rigid_body_mut(beam_pbody.handle).unwrap()
                                 .set_position(
@@ -253,7 +249,7 @@ impl<'s> System<'s> for BeamerSystem {
                         *beam = None;
                         *shooting_timer = None;
                         // Start overheat timer
-                        overheat_timer.replace(BEAMER_OVERHEAT_TIME);
+                        overheat_timer.replace(beamer_config.overheat_time);
                     }
                 }
                 if let Some(timer) = overheat_timer {
@@ -262,7 +258,7 @@ impl<'s> System<'s> for BeamerSystem {
                     if *timer <= 0.0 { *overheat_timer = None; }
                 }                
                 if *heating_progress > 0.0 && !tank.is_shooting && shooting_timer.is_none() {
-                    *heating_progress -= time.delta_seconds() / BEAMER_HEAT_TIME;
+                    *heating_progress -= time.delta_seconds() / beamer_config.heat_time;
                 }
             }
         }

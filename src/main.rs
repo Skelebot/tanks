@@ -38,8 +38,10 @@ fn main() -> amethyst::Result<()> {
 
     let config = resources.join("config");
     let display_config = DisplayConfig::load(&config.join("display.ron"))?;
-    let tank_config = config::TankConfig::load(&config.join("tank.ron")).expect("Failed to load TankConfig");
-    let maze_config = config::MazeConfig::load(&config.join("maze.ron")).expect("Failed to load MazeConfig");
+    let tank_config = config::TankConfig::load(&config.join("tank.ron")).unwrap();
+    let maze_config = config::MazeConfig::load(&config.join("maze.ron")).unwrap();
+    let beamer_config = config::BeamerConfig::load(&config.join("beamer.ron")).unwrap();
+    let cannon_config = config::CannonConfig::load(&config.join("cannon.ron")).unwrap();
 
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
@@ -70,15 +72,16 @@ fn main() -> amethyst::Result<()> {
                 .with_plugin(RenderUi::default())
         )?;
 
-    let mut game = Application::build(resources, states::GameplayState)?
+    let game = Application::build(resources, states::GameplayState)?
         .with_resource(tank_config)
         .with_resource(maze_config)
+        .with_resource(beamer_config)
+        .with_resource(cannon_config)
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
             60
         )
         .build(game_data)?;
-    // game.run_winit_loop(event_loop);
-    game.run();
-    Ok(())
+    game.run_winit_loop(event_loop);
+    // Ok(())
 }

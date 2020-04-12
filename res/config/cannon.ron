@@ -1,0 +1,11 @@
+(
+    shoot_time: 0.4,
+    bullet_time: 6.0,
+    self_safety_margin: 3.0,
+    bullet_density: 15.0,
+    bullet_margin: 1.2,
+    bullet_radius: 3.0,
+    bullet_velocity: 120.0,
+    bullet_restitution: 1.0,
+    bullet_sprite_num: 2
+)

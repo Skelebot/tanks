@@ -1,0 +1,8 @@
+(
+    heat_time: 0.6,
+    heating_max_scale: 23.0,
+    beam_width: 20.0,
+    shoot_time: 1.2,
+    overheat_time: 2.3,
+    self_safety_margin: 5.0,
+)

@@ -96,7 +96,6 @@ impl<'s> System<'s> for DestroySystem {
                         if hit_handle == tank_collider.handle || deadly_handle == tank_collider.handle {
                             // Tell the scoreboard the tank lost the round
                             scoreboard.report_destroyed(tank.team);
-                            println!("{:?} tank is destroyed", tank.team);
                             // We change the tank's state to 'Hit' so that the following code 
                             // will do the explosion and stuff
                             tank.state = TankState::Hit;
