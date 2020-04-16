@@ -7,25 +7,26 @@ use rand::distributions::{Distribution, Uniform};
 use amethyst::{
     ecs::{
         Entities, Join, System,
-        WriteStorage, Read, WriteExpect,
+        WriteStorage, WriteExpect, ReadExpect,
     },
     renderer::SpriteRender,
     core::transform::Transform,
 };
 
-use crate::utils::SpriteSheetRes;
+use crate::utils::TanksSpriteSheet;
 use crate::tank::{Tank, Team, TankState};
 use crate::physics;
 use crate::markers::*;
 use crate::level::MazeLevel;
 use crate::scoreboard::Scoreboard;
 
+// TODO_H: Use a config
 const PARTICLE_SPRITE_NUMS: [usize; 3] = [6, 7, 8];
 const RED_PARTICLE_SPRITE_NUMS: [usize; 2] = [9, 10];
 const BLUE_PARTICLE_SPRITE_NUMS: [usize; 2] = [11, 12];
 const PARTICLE_DAMPING: f32 = 0.3;
 const PARTICLE_TANK_NUM: u32 = 12;
-// TODO: Make it possible to explode things like walls
+// TODO_VL: Make it possible to explode things like walls
 // const PARTICLE_OTHER_NUM: u32 = 5;
 const PARTICLE_MIN_VEL: f32 = 400.0;
 const PARTICLE_MAX_VEL: f32 = 450.0;
@@ -46,7 +47,7 @@ impl<'s> System<'s> for DestroySystem {
 
         WriteStorage<'s, Tank>,
 
-        Read<'s, SpriteSheetRes>,
+        ReadExpect<'s, TanksSpriteSheet>,
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, TempMarker>,
@@ -89,11 +90,11 @@ impl<'s> System<'s> for DestroySystem {
                     // deadly entity (for example a bullet or a laser beam)
                     // and the second will be a wall, a tank or something else
                     // We don't need the deadly collider handle, we only care what it hit
-                    let deadly_handle = interaction.0;
+                    // let deadly_handle = interaction.0;
                     let hit_handle = interaction.2;
                     // Match tank to collider handle and determine it's team
                     for (tank, tank_collider) in (&mut tanks, &colliders).join() {
-                        if hit_handle == tank_collider.handle || deadly_handle == tank_collider.handle {
+                        if hit_handle == tank_collider.handle {
                             // Tell the scoreboard the tank lost the round
                             scoreboard.report_destroyed(tank.team);
                             // We change the tank's state to 'Hit' so that the following code 
@@ -121,15 +122,16 @@ impl<'s> System<'s> for DestroySystem {
             };
             // Use uniform distribution
             let numbers = Uniform::new(0, sprite_numbers.len());
+            let angles = Uniform::new(0.0_f32, 360.0_f32);
             for _ in 0..PARTICLE_TANK_NUM {
                 let sprite_render = SpriteRender {
-                    sprite_sheet: sprite_sheet.handle.as_ref().unwrap().clone(),
+                    sprite_sheet: sprite_sheet.handle.clone(),
                     sprite_number: sprite_numbers[numbers.sample(&mut thread_rng)]
                 };
                 // TODO_L: Weight the angle using the direction from which the tank was hit
                 //       so that the particles fly in the opposite direction
                 // Angle at which the projectile will be thrown
-                let angle = thread_rng.gen_range(0.0, 360.0_f32.to_radians());
+                let angle = angles.sample(&mut thread_rng);
                 let position = 
                     physics.get_rigid_body(body.handle).unwrap().position().translation.vector
                     + na::Vector2::new(thread_rng.gen_range(-3.0, 3.0), thread_rng.gen_range(-3.0, 3.0));

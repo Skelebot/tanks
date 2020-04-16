@@ -7,11 +7,11 @@ use amethyst::{
     renderer::SpriteRender,
     ecs::{
         Join, System,
-        Read, WriteStorage, WriteExpect,
+        Read, WriteStorage, WriteExpect, ReadExpect,
         Entities, Entity
     }
 };
-use crate::utils::SpriteSheetRes;
+use crate::utils::TanksSpriteSheet;
 use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
@@ -33,7 +33,7 @@ impl<'s> System<'s> for CannonSystem {
         Entities<'s>,
 
         WriteStorage<'s, Transform>,
-        Read<'s, SpriteSheetRes>,
+        ReadExpect<'s, TanksSpriteSheet>,
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
@@ -60,6 +60,9 @@ impl<'s> System<'s> for CannonSystem {
             cannon_config,
         ): Self::SystemData,
     ) {
+        // TODO_L: Make it readable
+        // TODO_VH: Fix a bug when a player can shoot through walls
+        // TODO_VH: Fix a bug when a player explodes when shooting while moving/rotating
 
         // Entities and Bodies to be added to them because we can't borrow bodies twice in the same scope
         let mut bodies_to_add: Vec<(Entity, physics::Body)> = Vec::new();
@@ -98,7 +101,7 @@ impl<'s> System<'s> for CannonSystem {
 
                         let sprite_render = SpriteRender {
                             sprite_number: cannon_config.bullet_sprite_num,
-                            sprite_sheet: sprite_sheet.handle.as_ref().unwrap().clone()
+                            sprite_sheet: sprite_sheet.handle.clone(),
                         };
                         let mut transform = Transform::default();
                         transform.set_translation_x(-200.0);

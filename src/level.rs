@@ -3,13 +3,13 @@ use ncollide2d as nc;
 use nalgebra as na;
 use amethyst::{
     prelude::*,
-    ecs::{Entities, Read, WriteStorage, WriteExpect},
+    ecs::{Entities, WriteStorage, WriteExpect},
     core::Transform,
     renderer::SpriteRender,
     window::ScreenDimensions,
 };
 use crate::utils::mazegen::Maze;
-use crate::utils::SpriteSheetRes;
+use crate::utils::TanksSpriteSheet;
 use crate::markers::TempMarker;
 use crate::physics;
 use crate::config::MazeConfig;
@@ -22,7 +22,7 @@ pub struct MazeLevel {
 
 impl MazeLevel {
 
-    pub fn new(world: &mut World, dimensions: &ScreenDimensions) -> Self {
+    pub fn new(world: &mut World, sprite_sheet: &TanksSpriteSheet, dimensions: &ScreenDimensions) -> Self {
         let maze_config = world.fetch::<MazeConfig>();
 
         let mut maze = Maze::new(maze_config.maze_width, maze_config.maze_height);
@@ -38,7 +38,7 @@ impl MazeLevel {
         level.rebuild(
             &maze_config,
             &world.entities(),
-            &world.system_data(),
+            sprite_sheet,
             &mut world.system_data(),
             &mut world.system_data(),
             &mut world.system_data(),
@@ -55,7 +55,7 @@ impl MazeLevel {
         &mut self, 
         maze_config: &MazeConfig,
         entities: &Entities, 
-        ss_handle: &Read<SpriteSheetRes>,
+        ss_handle: &TanksSpriteSheet,
         mut sprite_renders: &mut WriteStorage<SpriteRender>,
         mut transforms: &mut WriteStorage<Transform>,
         physics: &mut WriteExpect<physics::Physics>,
@@ -163,7 +163,7 @@ impl MazeLevel {
             // Create Physics for the entity
             // Create a renderable sprite
             let sprite_render = SpriteRender {
-                sprite_sheet: ss_handle.handle.as_ref().expect("SpriteSheet is None").clone(),
+                sprite_sheet: ss_handle.handle.clone(),
                 sprite_number: maze_config.sprite_num
             };
 
@@ -190,6 +190,10 @@ impl MazeLevel {
                         maze_config.cell_width * 0.5 - maze_config.rb_margin,
                         maze_config.w_thickness * 0.5,
                     ))
+                ))
+                .material(np::material::MaterialHandle::new(
+                    //TODO_M: Config for wall restitution
+                    np::material::BasicMaterial::new(1.0, 0.0)
                 ))
                 .density(maze_config.w_density);
 

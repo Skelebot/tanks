@@ -1,0 +1,13 @@
+(
+    cell_width: 64.0,
+    cell_height: 64.0,
+    w_thickness: 2.0,
+    rb_margin: 0.6,
+    w_density: 15.0,
+    w_damping: 4.5,
+    dynamic_walls: false,
+    maze_width: 8,
+    maze_height: 5,
+    sprite_num: 3,
+    sprite_width: 64.0,
+)

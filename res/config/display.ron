@@ -6,5 +6,5 @@
   visibility: true,
   decorations: false,
   maximized: false,
-  resizable: true,
+  resizable: false,
 )

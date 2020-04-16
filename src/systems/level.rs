@@ -14,7 +14,7 @@ use amethyst::{
 use crate::level::MazeLevel;
 use crate::tank::{Tank, TankState};
 use crate::markers::TempMarker;
-use crate::utils::SpriteSheetRes;
+use crate::utils::TanksSpriteSheet;
 use crate::physics;
 use crate::config::MazeConfig;
 use crate::scoreboard::Scoreboard;
@@ -28,7 +28,7 @@ impl<'s> System<'s> for LevelSystem {
         Read<'s, MazeConfig>,
         WriteExpect<'s, MazeLevel>,
         Entities<'s>,
-        Read<'s, SpriteSheetRes>,
+        ReadExpect<'s, TanksSpriteSheet>,
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, Transform>,
         WriteExpect<'s, physics::Physics>,

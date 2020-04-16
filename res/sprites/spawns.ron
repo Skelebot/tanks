@@ -1,0 +1,21 @@
+List((
+  // TODO: Make this a grid spritesheet, because all sprites are the same size
+  texture_width: 64,
+  texture_height: 64,
+  sprites: [
+    // Cannon spawn
+    (
+      x: 0,
+      y: 0,
+      width: 16,
+      height: 16,
+    ),
+    // Beamer spawn
+    (
+      x: 17,
+      y: 0,
+      width: 16,
+      height: 16,
+    )
+  ]
+))

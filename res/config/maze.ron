@@ -5,7 +5,7 @@
     rb_margin: 0.6,
     w_density: 15.0,
     w_damping: 4.5,
-    dynamic_walls: true,
+    dynamic_walls: false,
     maze_width: 8,
     maze_height: 5,
     sprite_num: 3,

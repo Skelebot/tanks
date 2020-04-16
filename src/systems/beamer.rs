@@ -12,7 +12,7 @@ use amethyst::{
         Entities, Entity
     }
 };
-use crate::utils::SpriteSheetRes;
+use crate::utils::TanksSpriteSheet;
 use crate::tank::{Tank, Team, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
@@ -34,7 +34,7 @@ impl<'s> System<'s> for BeamerSystem {
         Entities<'s>,
 
         WriteStorage<'s, Transform>,
-        Read<'s, SpriteSheetRes>,
+        ReadExpect<'s, TanksSpriteSheet>,
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
@@ -91,7 +91,7 @@ impl<'s> System<'s> for BeamerSystem {
                         if heating_square.is_none() {
                             // Initialize the heating square
                             let sprite_render = SpriteRender {
-                                sprite_sheet: sprite_sheet.handle.as_ref().expect("SpriteSheet is None").clone(),
+                                sprite_sheet: sprite_sheet.handle.clone(),
                                 // TODO: Use a config
                                 sprite_number: match tank.team {
                                     Team::Red => 4,
@@ -122,7 +122,7 @@ impl<'s> System<'s> for BeamerSystem {
                             // Create the beam entity
 
                             let sprite_render = SpriteRender {
-                                sprite_sheet: sprite_sheet.handle.as_ref().unwrap().clone(),
+                                sprite_sheet: sprite_sheet.handle.clone(),
                                 // TODO: Use a config
                                 sprite_number: match tank.team {
                                     Team::Red => 4,

@@ -1,0 +1,12 @@
+(
+  axes: {
+    "p1_forward": Emulated(pos: Key(W), neg: Key(S)),
+    "p1_side": Emulated(pos: Key(D), neg: Key(A)),
+    "p2_forward": Emulated(pos: Key(Up), neg: Key(Down)),
+    "p2_side": Emulated(pos: Key(Right), neg: Key(Left)),
+  },
+  actions: {
+    "p1_fire": [[Key(Q)]],
+    "p2_fire": [[Key(M)]],
+  },
+)

@@ -13,7 +13,7 @@ use amethyst::{
     ui::{Anchor, TtfFormat, UiText, UiTransform, UiImage},
 };
 
-use crate::utils::SpriteSheetRes;
+use crate::utils::{TanksSpriteSheet, SpawnsSpriteSheet};
 use crate::level::MazeLevel;
 use crate::config::TankConfig;
 use crate::tank::{Tank, Team};
@@ -36,20 +36,21 @@ impl SimpleState for GameplayState {
         // Place the camera
         init_camera(world, &dimensions);
 
-        // Load our sprite sheet and insert it into the World
-        // as a Resource, so that Systems can use it
-        let sprite_sheet_handle = load_sprite_sheet(world);
-        let sprite_sheet_res = SpriteSheetRes {
-            handle: Some(sprite_sheet_handle.clone())
-        };
-        world.insert(sprite_sheet_res);
+        // Load our sprite sheets
+        let tanks_sprite_sheet = TanksSpriteSheet::new(load_sprite_sheet(world, "tanks"));
+        let spawns_sprite_sheet = SpawnsSpriteSheet::new(load_sprite_sheet(world, "spawns"));
 
         // Initialize the level
-        init_level(world, &dimensions);
+        init_level(world, &tanks_sprite_sheet, &dimensions);
         // Initialize players
-        init_players(world, sprite_sheet_handle.clone(), &dimensions);
+        init_players(world, &tanks_sprite_sheet, &dimensions);
         // Initialize the scoreboard
-        init_scoreboard(world, sprite_sheet_handle);
+        init_scoreboard(world, &tanks_sprite_sheet);
+
+        // Insert the sprite sheets into the world as a `Resource`,
+        // so that systems can use them
+        world.insert(tanks_sprite_sheet);
+        world.insert(spawns_sprite_sheet);
     }
 
     // Handle keyboard and window events,
@@ -74,14 +75,14 @@ impl SimpleState for GameplayState {
 }
 
 /// Initialize the level in the middle of the game's screen
-fn init_level(world: &mut World, dimensions: &ScreenDimensions) {
+fn init_level(world: &mut World, sprite_sheet: &TanksSpriteSheet, dimensions: &ScreenDimensions) {
     // It's up to this function which type and what size of level we should create
-    let maze = MazeLevel::new(world, dimensions);
+    let maze = MazeLevel::new(world, sprite_sheet, dimensions);
     world.insert(maze);
 }
 
 /// Initialize the UI score counters and the Scoreboard Resource
-fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
+fn init_scoreboard(world: &mut World, tanks_sheet_handle: &TanksSpriteSheet) {
     let margin = 50.0;
     let padding = 20.0;
 
@@ -89,7 +90,7 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
     let tank_config = (*world.read_resource::<TankConfig>()).clone();
     let tank_sprites: Vec<SpriteRender> = tank_config.sprite_nums.iter()
         .map(|i| SpriteRender {
-            sprite_sheet: sheet_handle.clone(),
+            sprite_sheet: tanks_sheet_handle.handle.clone(),
             sprite_number: *i,
         }).collect();
 
@@ -178,21 +179,24 @@ fn init_scoreboard(world: &mut World, sheet_handle: Handle<SpriteSheet>) {
 /// Return handle to this SpriteSheet that can be used to
 /// create SpriteRender's for entities and/or
 /// be inserted into the World in a SpriteSheetRes.
-fn load_sprite_sheet(world: &mut World) -> Handle<SpriteSheet> {
+/// 
+/// # Arguments
+/// 
+/// * `name` - The name of the spritesheet and spritesheet metadata file;
+///            the files should be called `{name}.png` and `{name}.ron` respectively
+fn load_sprite_sheet(world: &mut World, name: &str) -> Handle<SpriteSheet> {
     let loader = world.read_resource::<Loader>();
-    // Load the texture
-    let texture_handle = {
-        let texture_storage = world.read_resource::<AssetStorage<Texture>>();
+    // Load the spritesheet texture
+    let texture_handle = 
         loader.load(
-            "sprites/tanks.png",
+            format!("sprites/{}.png", name),
             ImageFormat::default(),
             (),
-            &texture_storage
-        )
-    };
-    // Load the spritesheet definition file and return it
+            &world.read_resource::<AssetStorage<Texture>>()
+        );
+    // Load the spritesheet definition file
     loader.load(
-        "sprites/tanks.ron",
+        format!("sprites/{}.ron", name),
         SpriteSheetFormat(texture_handle),
         (),
         &world.read_resource::<AssetStorage<SpriteSheet>>()
@@ -215,7 +219,7 @@ fn init_camera(world: &mut World, dimensions: &ScreenDimensions) {
 }
 
 /// Create entities for both player's tanks
-fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimensions: &ScreenDimensions) {
+fn init_players(world: &mut World, tanks_sprite_sheet: &TanksSpriteSheet, _dimensions: &ScreenDimensions) {
 
     // Fetch the config for tank's entities, it should be loaded on game data creation
     let tank_config = (*world.read_resource::<TankConfig>()).clone();
@@ -228,7 +232,7 @@ fn init_players(world: &mut World, sheet_handle: Handle<SpriteSheet>, _dimension
     //TODO: Determine players' sprite numbers from a config (prefab?)
     let sprites: Vec<SpriteRender> = tank_config.sprite_nums.iter()
         .map(|i| SpriteRender {
-            sprite_sheet: sheet_handle.clone(),
+            sprite_sheet: tanks_sprite_sheet.handle.clone(),
             sprite_number: *i,
         }).collect();
     
