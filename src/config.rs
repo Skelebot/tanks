@@ -41,6 +41,20 @@ impl Default for MazeConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct SpawnConfig {
+    pub spawn_time: f32,
+    pub max_spawns: u16,
+    pub spawn_size: f32,
+    // TODO_F: Spawn chances, spawn sprite numbers
+}
+
+impl Default for SpawnConfig {
+    fn default() -> Self {
+        panic!("Couldn't load SpawnConfig");
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct BeamerConfig {
     pub heat_time: f32,
     pub heating_max_scale: f32,
@@ -48,6 +62,7 @@ pub struct BeamerConfig {
     pub shoot_time: f32,
     pub overheat_time: f32,
     pub self_safety_margin: f32,
+    pub shake_magnitude: f32,
 }
 
 impl Default for BeamerConfig {

@@ -1,0 +1,5 @@
+(
+    spawn_time: 3.5,
+    max_spawns: 6,
+    spawn_size: 3.0
+)

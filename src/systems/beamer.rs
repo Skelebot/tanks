@@ -19,6 +19,7 @@ use crate::weapons::Weapon;
 use crate::config::TankConfig;
 use crate::config::BeamerConfig;
 use crate::markers::*;
+use crate::systems::camshake::CameraShake;
 
 pub struct BeamerSystem;
 
@@ -42,6 +43,7 @@ impl<'s> System<'s> for BeamerSystem {
         Read<'s, TankConfig>,
         Read<'s, BeamerConfig>,
         ReadExpect<'s, ScreenDimensions>,
+        WriteExpect<'s, CameraShake>,
     );
 
     fn run(
@@ -61,6 +63,7 @@ impl<'s> System<'s> for BeamerSystem {
             tank_config,
             beamer_config,
             screen_dimensions,
+            mut cam_shake,
         ): Self::SystemData,
     ) {
 
@@ -177,6 +180,9 @@ impl<'s> System<'s> for BeamerSystem {
 
                             // Start shooting timer
                             shooting_timer.replace(beamer_config.shoot_time);
+
+                            // Shake the camera because why not
+                            cam_shake.dms.push((beamer_config.shoot_time, beamer_config.shake_magnitude))
                         }
                     } 
                 }
@@ -270,6 +276,7 @@ impl<'s> System<'s> for BeamerSystem {
 
 #[test]
 #[allow(dead_code)]
+/// A method to mutate an enum's variant internal values
 fn test_mut_enum() {
     enum A {
         Variant {

@@ -70,7 +70,7 @@ impl<'s> System<'s> for TankSystem {
             // Movement rotated relative to the tank's front
             let mov_rel = rb.position().rotation * na::Vector2::new(0.0, movement.y * tank_config.linear_accel * time.delta_seconds() * 100.0);
 
-            // TODO: Delta frame time scaling
+            // TODO_L: Delta frame time scaling
             // Push the tank forward and apply angular velocity
             rb.set_velocity(
                 * rb.velocity() +

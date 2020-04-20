@@ -1,5 +1,4 @@
 use amethyst::ecs::Entity;
-use rand::{thread_rng, Rng};
 
 #[derive(Clone)]
 #[allow(dead_code)]     // When we use the random() method everywhere, the compiler tells us the variants are never constructed
@@ -18,7 +17,7 @@ pub enum Weapon {
     _Shotgun,
 }
 
-impl Weapon {
+/*impl Weapon {
     pub fn random() -> Self {
         let mut rand = thread_rng();
         let num = rand.gen_range(0, 5);
@@ -28,15 +27,12 @@ impl Weapon {
             _ => Self::default(),
         }
     }
-}
+}*/
+
 impl Default for Weapon {
     fn default() -> Self {
-        Self::Beamer {
-            heating_progress: 0.0,
+        Self::Cannon {
             shooting_timer: None,
-            overheat_timer: None,
-            heating_square: None,
-            beam: None
         }
     }
 }

@@ -42,6 +42,7 @@ fn main() -> amethyst::Result<()> {
     let maze_config = config::MazeConfig::load(&config.join("maze.ron")).unwrap();
     let beamer_config = config::BeamerConfig::load(&config.join("beamer.ron")).unwrap();
     let cannon_config = config::CannonConfig::load(&config.join("cannon.ron")).unwrap();
+    let spawn_config = config::SpawnConfig::load(&config.join("spawn.ron")).unwrap();
 
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
@@ -60,6 +61,7 @@ fn main() -> amethyst::Result<()> {
         .with(systems::CannonSystem, "cannon_system", &["spawn_system"])
 
         .with(systems::DestroySystem, "destroy_system", &["beamer_system", "cannon_system"])
+        .with(systems::CameraShakeSystem, "shake_system", &["destroy_system"])
         .with(physics::StepperSystem, "stepper_system", &["destroy_system"])
         .with(physics::PTTSystem, "physics_to_transform_system", &["stepper_system"])
         .with_bundle(
@@ -78,6 +80,7 @@ fn main() -> amethyst::Result<()> {
         .with_resource(maze_config)
         .with_resource(beamer_config)
         .with_resource(cannon_config)
+        .with_resource(spawn_config)
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
             60

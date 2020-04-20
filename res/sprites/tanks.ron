@@ -19,14 +19,14 @@ List((
     // Neutral bullet
     (
       x: 58,
-      y: 0,
+      y: 1,
       width: 6,
       height: 6,
     ),
     // Maze wall
     (
       x: 0,
-      y: 24,
+      y: 25,
       width: 64,
       height: 2,
     ),
@@ -34,57 +34,57 @@ List((
     // Red beam pixel
     (
       x: 62,
-      y: 23,
+      y: 24,
       width: 1,
       height: 1,
     ),
     // Blue beam pixel
     (
       x: 63,
-      y: 23,
+      y: 24,
       width: 1,
       height: 1,
     ),
     // Light pixel
     (
       x: 0,
-      y: 26,
+      y: 27,
       width: 1, height: 1,
     ),
     // Gray pixel
     (
       x: 1,
-      y: 26,
+      y: 27,
       width: 1, height: 1,
     ),
     // Dark pixel
     (
       x: 2,
-      y: 26,
+      y: 27,
       width: 1, height: 1,
     ),
     // Light red pixel
     (
       x: 0,
-      y: 27,
+      y: 28,
       width: 1, height: 1,
     ),
     // Dark red pixel
     (
       x: 1,
-      y: 27,
+      y: 28,
       width: 1, height: 1,
     ),
     // Light blue pixel
     (
       x: 0,
-      y: 28,
+      y: 29,
       width: 1, height: 1,
     ),
     // Dark blue pixel
     (
       x: 1,
-      y: 28,
+      y: 29,
       width: 1, height: 1,
     )
   ]

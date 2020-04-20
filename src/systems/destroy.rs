@@ -19,6 +19,7 @@ use crate::physics;
 use crate::markers::*;
 use crate::level::MazeLevel;
 use crate::scoreboard::Scoreboard;
+use crate::systems::camshake::CameraShake;
 
 // TODO_H: Use a config
 const PARTICLE_SPRITE_NUMS: [usize; 3] = [6, 7, 8];
@@ -34,6 +35,9 @@ const PARTICLE_SCALE: f32 = 4.0;
 const PARTICLE_DENSITY: f32 = 10.0;
 
 const LEVEL_RESET_DELAY: f32 = 3.0;
+
+const TANK_EXPLOSION_SHAKE_DURATION: f32 = 0.3;
+const TANK_EXPLOSION_SHAKE_MAGNITUDE: f32 = 10.0;
 
 pub struct DestroySystem;
 
@@ -53,10 +57,12 @@ impl<'s> System<'s> for DestroySystem {
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
 
-        // TODO: Make a level reset timer Resource so that we don't have to fetch the whole level
+        // TODO_L: Make a level reset timer Resource so that we don't have to fetch the whole level
         WriteExpect<'s, MazeLevel>,
 
         WriteExpect<'s, Scoreboard>,
+
+        WriteExpect<'s, CameraShake>,
     );
 
     fn run (
@@ -74,6 +80,7 @@ impl<'s> System<'s> for DestroySystem {
             deadly_markers,
             mut level,
             mut scoreboard,
+            mut cam_shake,
         ): Self::SystemData
     ) {
         // Check for tanks colliding with entities marked with DeadlyMarker
@@ -155,7 +162,11 @@ impl<'s> System<'s> for DestroySystem {
             physics.get_rigid_body_mut(body.handle).unwrap().set_status(np::object::BodyStatus::Disabled);
             // Start the level reset countdown
             level.reset_timer.replace(LEVEL_RESET_DELAY);
+
             tank.state = TankState::Destroyed;
+
+            // Start shaking the camera
+            cam_shake.dms.push((TANK_EXPLOSION_SHAKE_DURATION, TANK_EXPLOSION_SHAKE_MAGNITUDE));
         }
 
         // Create the particles

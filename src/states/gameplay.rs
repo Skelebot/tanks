@@ -19,6 +19,7 @@ use crate::config::TankConfig;
 use crate::tank::{Tank, Team};
 use crate::scoreboard::Scoreboard;
 use crate::weapons::Weapon;
+use crate::systems::camshake::CameraShake;
 
 use crate::physics;
 
@@ -51,6 +52,9 @@ impl SimpleState for GameplayState {
         // so that systems can use them
         world.insert(tanks_sprite_sheet);
         world.insert(spawns_sprite_sheet);
+
+        // Initialize the CameraShake resource
+        world.insert(CameraShake::default());
     }
 
     // Handle keyboard and window events,
@@ -66,7 +70,7 @@ impl SimpleState for GameplayState {
                 if event.0 == VirtualKeyCode::B && event.1 == ElementState::Pressed {
                     // Reset the level
                     data.world.write_resource::<MazeLevel>()
-                        .reset_timer.replace(0.01);
+                        .reset_timer.replace(0.1);
                 }
             }
         }
@@ -313,7 +317,7 @@ fn init_players(world: &mut World, tanks_sprite_sheet: &TanksSpriteSheet, _dimen
 
     // Create the red tank
     world.create_entity()
-        .with(Tank::new(Team::Red, Weapon::random()))
+        .with(Tank::new(Team::Red, Weapon::default()))
         .with(sprites[0].clone())
         .with(red_body)
         .with(red_collider)
@@ -322,7 +326,7 @@ fn init_players(world: &mut World, tanks_sprite_sheet: &TanksSpriteSheet, _dimen
     
     // Create the blue tank
     world.create_entity()
-       .with(Tank::new(Team::Blue, Weapon::random()))
+       .with(Tank::new(Team::Blue, Weapon::default()))
        .with(sprites[1].clone())
        .with(blue_body)
        .with(blue_collider)

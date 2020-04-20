@@ -5,4 +5,5 @@
     shoot_time: 1.2,
     overheat_time: 2.3,
     self_safety_margin: 5.0,
+    shake_magnitude: 4.0
 )
