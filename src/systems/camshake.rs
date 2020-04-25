@@ -62,25 +62,10 @@ impl<'s> System<'s> for CameraShakeSystem {
             );
         }
 
-        let mut shakes_to_remove: Vec<usize> = Vec::new();
-        for (index, (ref mut duration, _)) in cam_shake.dms.iter_mut().enumerate() {
-            *duration -= time.delta_seconds();
-            if *duration <= 0.0 {
-                shakes_to_remove.push(index);
-            }
-        }
+        cam_shake.dms.retain(|x| x.0 > time.delta_seconds());
 
-        for i in shakes_to_remove {
-            cam_shake.dms.remove(i);
-            // If this was the last shake
-            if cam_shake.dms.is_empty() {
-                // Put the camera back to it's original position
-                transform.set_translation_xyz(
-                    cam_shake.cam_origin.unwrap().x,
-                    cam_shake.cam_origin.unwrap().y,
-                    transform.translation().z,
-                );
-            }
+        for dm in cam_shake.dms.iter_mut() {
+            dm.0 -= time.delta_seconds();
         }
 
         if !cam_shake.dms.is_empty() {
@@ -90,6 +75,14 @@ impl<'s> System<'s> for CameraShakeSystem {
                 cam_shake.cam_origin.unwrap().y + accumulated.y,
                 transform.translation().z,
             );             
+        } else if let Some(ref mut origin) = cam_shake.cam_origin {
+            // Put the camera back to it's original position
+            transform.set_translation_xyz(
+                origin.x,
+                origin.y,
+                transform.translation().z,
+            );
+            cam_shake.cam_origin = None;
         }
     }
 }

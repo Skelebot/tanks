@@ -1,11 +1,36 @@
 (
-    shoot_time: 0.4,
+    // Shot cooldown time (seconds)
+    shoot_time: 0.5,
+    // How long does a bullet live before it gets removed (seconds)
     bullet_time: 6.0,
-    self_safety_margin: 3.0,
+    // The distance between the tank's front and the spawned bullet
+    // Protects against situations when a tank gets hit by the bullet it shot in the same frame
+    self_safety_margin: 4.2,
     bullet_density: 25.0,
+    // Margin size of the bullet's collider. The bigger the margin, the smaller the chance of a collision
+    // being missed by the physics engine. The bullet still bounces off things like it has a radius of bullet_radius,
+    // just generates more collision events and generates them before it even hits anything.
     bullet_margin: 1.5,
+    // The size of the bullet's sprite, used as the radius of the bullet's collider
     bullet_radius: 3.0,
-    bullet_velocity: 140.0,
+    bullet_velocity: 130.0,
+    // The "bounciness" of the bullet. When resolving contacts, the force at which things bounce off is computed
+    // by multiplying their restitution coefficients - if both things have a restitution of 1.0, they bounce off
+    // with the exact same force they collided.
     bullet_restitution: 1.0,
-    bullet_sprite_num: 2
+    // The sprite's number on the spritesheet
+    bullet_sprite_num: 2,
+    // Before shooting, test if the tank isn't pushed against a wall or another tank.
+    // Setting this to `false` may allow tanks to shoot through walls because the bullet
+    // is always spawned `(tank_size_y / 2) + self_safety_margin` away from the origin of the tank.
+    // Probably computionally expensive
+    test_wallscan: true,
+    // Modificator to the maximum time of impact
+    // Max TOI is equal to `(tank_size_y / 2) + self_safety_margin + mod`
+    // Set positive for better wallscan protection
+    // Set negative for more visual accuracy
+    // The point on the ray at a given toi can be computed with
+    // origin + dir * toi
+    // dir is normalized, so it's most probably measured in pixels
+    wallscan_toi_mod: -2.0
 )

@@ -68,8 +68,8 @@ impl<'s> System<'s> for SpawnSystem {
         WriteStorage<'s, Tank>,
         WriteStorage<'s, Spawn>,
 
-        Read<'s, SpawnConfig>,
-        Read<'s, MazeConfig>,
+        ReadExpect<'s,  SpawnConfig>,
+        ReadExpect<'s,  MazeConfig>,
 
         ReadExpect<'s, ScreenDimensions>,
         Read<'s, Time>,

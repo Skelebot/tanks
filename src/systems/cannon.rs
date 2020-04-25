@@ -38,8 +38,8 @@ impl<'s> System<'s> for CannonSystem {
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
 
-        Read<'s, TankConfig>,
-        Read<'s, CannonConfig>,
+        ReadExpect<'s,  TankConfig>,
+        ReadExpect<'s,  CannonConfig>,
     );
 
     fn run(
@@ -60,10 +60,6 @@ impl<'s> System<'s> for CannonSystem {
             cannon_config,
         ): Self::SystemData,
     ) {
-        // TODO_L: Make it readable
-        // TODO_VH: Fix a bug when a player can shoot through walls
-        // TODO_VH: Fix a bug when a player explodes when shooting while moving/rotating
-
         // Entities and Bodies to be added to them because we can't borrow bodies twice in the same scope
         let mut bodies_to_add: Vec<(Entity, physics::Body)> = Vec::new();
         for (tank, body) in (&mut tanks, &bodies).join() {
@@ -75,7 +71,32 @@ impl<'s> System<'s> for CannonSystem {
                     // If the cannon is ready to shoot
                     if shooting_timer.is_none() {
                         // Shoot
+
                         let body = physics.get_rigid_body(body.handle).unwrap();
+
+                        // This is probably computionally expensive
+                        if cannon_config.test_wallscan {
+                            // Trace an infinite ray from the tank's origin to in the direction it's facing
+                            let ray = nc::query::Ray {
+                                origin: body.position().translation.vector.into(),
+                                dir: body.position().rotation * na::Vector2::new(0.0, 1.0)
+                            };
+                            let toi = (tank_config.size_y as f32/2.0) + cannon_config.self_safety_margin + cannon_config.wallscan_toi_mod;
+                            let interferences = physics.geom_world.interferences_with_ray(
+                                &physics.colliders, 
+                                &ray, 
+                                toi,
+                                &nc::pipeline::object::CollisionGroups::new()
+                            ).count();  // We only care about the number of the interactions, so we count items in the iterator
+
+                            // The ray always intersects with the tank. We could compute the origin to be at the end of the tank's barrel,
+                            // but it's much less expensive to just take the tank's origin.
+                            if interferences > 1 {
+                                tank.state = TankState::Hit;
+                                continue;
+                            }
+                        }
+
                         let pos = na::Isometry2::new(
                             body.position().translation.vector + body.position().rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + cannon_config.self_safety_margin),
                             body.position().rotation.angle(),
@@ -132,7 +153,7 @@ impl<'s> System<'s> for CannonSystem {
                 }
             }
         }
-        for (entity, body) in bodies_to_add.drain(..) {
+        for (entity, body) in bodies_to_add.into_iter() {
             bodies.insert(entity, body).expect("Something went wrong when adding bodies to entities");
         }
     }

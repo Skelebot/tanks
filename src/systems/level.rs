@@ -25,7 +25,7 @@ pub struct LevelSystem;
 impl<'s> System<'s> for LevelSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = (
-        Read<'s, MazeConfig>,
+        ReadExpect<'s,  MazeConfig>,
         WriteExpect<'s, MazeLevel>,
         Entities<'s>,
         ReadExpect<'s, TanksSpriteSheet>,

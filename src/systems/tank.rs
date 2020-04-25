@@ -5,7 +5,8 @@ use amethyst::{
         timing::Time,
     },
     ecs::{
-        System, Read, ReadStorage, WriteExpect, WriteStorage, Join
+        System, Join,
+        Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage,
     },
     input::{InputHandler, StringBindings},
 };
@@ -20,7 +21,7 @@ impl<'s> System<'s> for TankSystem {
     type SystemData = (
         WriteStorage<'s, Tank>,
         Read<'s, InputHandler<StringBindings>>,
-        Read<'s, TankConfig>,
+        ReadExpect<'s,  TankConfig>,
         ReadStorage<'s, physics::Body>,
         WriteExpect<'s, physics::Physics>,
         Read<'s, Time>

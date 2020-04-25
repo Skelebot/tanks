@@ -1,0 +1,15 @@
+(
+    particles_enabled: true,
+    shake_enabled: true,
+    particle_sprite_nums: (6, 7, 8),
+    red_particle_sprite_nums: (9, 10),
+    blue_particle_sprite_nums: (11, 12),
+    particle_damping: 0.3,
+    tank_explosion_particle_num: 12,
+    particle_vel_bounds: (400.0, 450.0),
+    particle_scale: 4.0,
+    particle_density: 10.0,
+    level_reset_delay: 3.0,
+    tank_explosion_shake_duration: 0.3,
+    tank_explosion_shake_magnitude: 10.0,
+)

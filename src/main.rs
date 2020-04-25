@@ -43,6 +43,7 @@ fn main() -> amethyst::Result<()> {
     let beamer_config = config::BeamerConfig::load(&config.join("beamer.ron")).unwrap();
     let cannon_config = config::CannonConfig::load(&config.join("cannon.ron")).unwrap();
     let spawn_config = config::SpawnConfig::load(&config.join("spawn.ron")).unwrap();
+    let destroy_config = config::DestroyConfig::load(&config.join("destroy.ron")).unwrap();
 
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
@@ -81,6 +82,7 @@ fn main() -> amethyst::Result<()> {
         .with_resource(beamer_config)
         .with_resource(cannon_config)
         .with_resource(spawn_config)
+        .with_resource(destroy_config)
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
             60

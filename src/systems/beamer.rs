@@ -40,8 +40,8 @@ impl<'s> System<'s> for BeamerSystem {
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
 
-        Read<'s, TankConfig>,
-        Read<'s, BeamerConfig>,
+        ReadExpect<'s,  TankConfig>,
+        ReadExpect<'s,  BeamerConfig>,
         ReadExpect<'s, ScreenDimensions>,
         WriteExpect<'s, CameraShake>,
     );
@@ -268,7 +268,7 @@ impl<'s> System<'s> for BeamerSystem {
                 }
             }
         }
-        for (entity, body) in bodies_to_add.drain(..) {
+        for (entity, body) in bodies_to_add.into_iter() {
             bodies.insert(entity, body).expect("Something went wrong when adding bodies to entities");
         }
     }

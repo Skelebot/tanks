@@ -159,7 +159,7 @@ impl MazeLevel {
             }
         }
 
-        for (pos, rb, horizontal) in w_pos_rb_h.drain(..) {
+        for (pos, rb, horizontal) in w_pos_rb_h.into_iter() {
             // Create Physics for the entity
             // Create a renderable sprite
             let sprite_render = SpriteRender {
