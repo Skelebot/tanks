@@ -100,7 +100,7 @@ impl<'s> System<'s> for SpawnSystem {
         // and keep the spawn timer frozen. This won't spawn any new spawns
         // and won't remove existing ones. When the LevelSystem resets the level,
         // all existing spawns will be automatically removed (TempMarkers)
-        if let Some(_) = level.reset_timer {
+        if level.reset_timer.is_some() {
             self.spawn_timer = spawn_config.spawn_time;
             self.spawns_alive = 0;
         }
@@ -262,8 +262,9 @@ fn random_spawn<R: Rng + ?Sized, D: Distribution<u32>>(rng: &mut R, dist: D) -> 
         _ => {
             let num = dist.sample(rng);
             match num {
-                0..=6 => SpawnType::Weapon(Weapon::Cannon { shooting_timer: None }),
-                7..=10 => SpawnType::Weapon(Weapon::Beamer { shooting_timer: None, beam: None, heating_progress: 0.0, heating_square: None, overheat_timer: None }),
+                0..=7 => SpawnType::Weapon(Weapon::Cannon { shooting_timer: None }),
+                // 3..=8 => SpawnType::Weapon(Weapon::Rocket { shooting_timer: None }),
+                8..=10 => SpawnType::Weapon(Weapon::Beamer { shooting_timer: None, beam: None, heating_progress: 0.0, heating_square: None, overheat_timer: None }),
                 _ => unreachable!(),
             }
         }
@@ -279,6 +280,7 @@ fn random_spawn<R: Rng + ?Sized, D: Distribution<u32>>(rng: &mut R, dist: D) -> 
             match &weapon {
                 Weapon::Cannon { .. } => 0,
                 Weapon::Beamer { .. } => 1,
+                Weapon::Rocket { .. } => 2,
                 _ => 3,
             }
         }
@@ -290,7 +292,7 @@ fn random_spawn<R: Rng + ?Sized, D: Distribution<u32>>(rng: &mut R, dist: D) -> 
 
 #[test]
 /// A method to find out if tho enum values are the same variant
-fn test_eq_enum() {
+fn test_eq_enum_variant() {
     #[derive(Debug, PartialEq)]
     enum T {
         A{x: u32, y: u32},

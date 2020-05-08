@@ -36,14 +36,15 @@ fn main() -> amethyst::Result<()> {
     let app_root = application_root_dir()?;
     let resources = app_root.join("res");
 
-    let config = resources.join("config");
-    let display_config = DisplayConfig::load(&config.join("display.ron"))?;
-    let tank_config = config::TankConfig::load(&config.join("tank.ron")).unwrap();
-    let maze_config = config::MazeConfig::load(&config.join("maze.ron")).unwrap();
-    let beamer_config = config::BeamerConfig::load(&config.join("beamer.ron")).unwrap();
-    let cannon_config = config::CannonConfig::load(&config.join("cannon.ron")).unwrap();
-    let spawn_config = config::SpawnConfig::load(&config.join("spawn.ron")).unwrap();
-    let destroy_config = config::DestroyConfig::load(&config.join("destroy.ron")).unwrap();
+    let config      = resources.join("config");
+    let display_config      = DisplayConfig::load(&config.join( "display.ron"))?;
+    let tank_config         = config::TankConfig::load(&config.join(    "tank.ron")).unwrap();
+    let maze_config         = config::MazeConfig::load(&config.join(    "maze.ron")).unwrap();
+    let beamer_config       = config::BeamerConfig::load(&config.join(  "beamer.ron")).unwrap();
+    let cannon_config       = config::CannonConfig::load(&config.join(  "cannon.ron")).unwrap();
+    let spawn_config        = config::SpawnConfig::load(&config.join(   "spawn.ron")).unwrap();
+    let destroy_config      = config::DestroyConfig::load(&config.join( "destroy.ron")).unwrap();
+    let performance_config  = config::PerformanceConfig::load(&config.join( "performance.ron")).unwrap();
 
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
@@ -54,12 +55,13 @@ fn main() -> amethyst::Result<()> {
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(UiBundle::<StringBindings>::new())?
-        .with(systems::TankSystem, "tank_system", &["input_system"])
-        .with(systems::LevelSystem, "level_system", &["tank_system"])
+        .with(systems::LevelSystem, "level_system", &[])
+        .with(systems::TankSystem, "tank_system", &["input_system", "level_system"])
         .with(systems::SpawnSystem::default(), "spawn_system", &["level_system"])
 
         .with(systems::BeamerSystem, "beamer_system", &["spawn_system"])
         .with(systems::CannonSystem, "cannon_system", &["spawn_system"])
+        // .with(systems::RocketSystem, "rocket_system", &["spawn_system"])
 
         .with(systems::DestroySystem, "destroy_system", &["beamer_system", "cannon_system"])
         .with(systems::CameraShakeSystem, "shake_system", &["destroy_system"])
@@ -83,6 +85,7 @@ fn main() -> amethyst::Result<()> {
         .with_resource(cannon_config)
         .with_resource(spawn_config)
         .with_resource(destroy_config)
+        .with_resource(performance_config)
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
             60

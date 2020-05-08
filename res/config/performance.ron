@@ -1,0 +1,5 @@
+(
+    test_wallscan: true,
+    wallscan_toi_mod: 0.0,
+    dynamic_particles: false,
+)

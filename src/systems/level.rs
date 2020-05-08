@@ -5,7 +5,7 @@ use amethyst::{
     renderer::{SpriteRender},
     ecs::{
         System, Entities, Join,
-        WriteStorage, Read, ReadExpect, WriteExpect,
+        WriteStorage, Read, ReadExpect, WriteExpect, ReadStorage,
     },
     window::ScreenDimensions,
     core::timing::Time,
@@ -13,7 +13,7 @@ use amethyst::{
 };
 use crate::level::MazeLevel;
 use crate::tank::{Tank, TankState};
-use crate::markers::TempMarker;
+use crate::markers::*;
 use crate::utils::TanksSpriteSheet;
 use crate::physics;
 use crate::config::MazeConfig;
@@ -41,6 +41,7 @@ impl<'s> System<'s> for LevelSystem {
 
         WriteExpect<'s, Scoreboard>,
         WriteStorage<'s, UiText>,
+        ReadStorage<'s, AcceleratingMarker>,
     );
 
     fn run(
@@ -61,6 +62,7 @@ impl<'s> System<'s> for LevelSystem {
             time,
             mut scoreboard,
             mut ui_text,
+            accelerating_markers,
         ): Self::SystemData,
     ) {
         
@@ -81,6 +83,15 @@ impl<'s> System<'s> for LevelSystem {
                     entities.delete(entity).expect("Couldn't remove the entity");
                 }
             }
+        }
+        // Add velocity to entities with a AcceleratingMarker
+        for (accelerating_marker, body) in (&accelerating_markers, &bodies).join() {
+            let rb = physics.get_rigid_body_mut(body.handle).unwrap();
+            rb.set_linear_velocity(
+                rb.velocity().linear +
+                rb.position().rotation *
+                na::Vector2::new(0.0, accelerating_marker.0)
+            )
         }
         if let Some(ref mut timer) = level.reset_timer {
             *timer -= time.delta_seconds();

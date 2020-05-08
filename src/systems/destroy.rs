@@ -21,6 +21,7 @@ use crate::level::MazeLevel;
 use crate::scoreboard::Scoreboard;
 use crate::systems::camshake::CameraShake;
 use crate::config::DestroyConfig;
+use crate::config::PerformanceConfig;
 
 // TODO_VL: Make it possible to explode things like walls
 
@@ -49,6 +50,7 @@ impl<'s> System<'s> for DestroySystem {
 
         WriteExpect<'s, CameraShake>,
         ReadExpect<'s, DestroyConfig>,
+        ReadExpect<'s, PerformanceConfig>,
     );
 
     fn run (
@@ -68,6 +70,7 @@ impl<'s> System<'s> for DestroySystem {
             mut scoreboard,
             mut cam_shake,
             destroy_config,
+            performance_config,
         ): Self::SystemData
     ) {
         // Check for tanks colliding with entities marked with DeadlyMarker
@@ -186,21 +189,6 @@ impl<'s> System<'s> for DestroySystem {
             // TODO_M: Dynamic/kinematic particles choice for performance
             let body = physics::Body { handle: physics.add_rigid_body(particle_rb_desc.position(position).build()) };
 
-            // Create the collider
-            let particle_collider_desc =
-                np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
-                    nc::shape::Cuboid::new(na::Vector2::new(
-                        destroy_config.particle_scale/2.0,
-                        destroy_config.particle_scale/2.0,
-                    ))
-                ))
-                .density(destroy_config.particle_density);
-
-            let collider = physics::Collider {
-                handle: physics.add_collider(particle_collider_desc.build(
-                    np::object::BodyPartHandle(body.handle, 0)
-                ))
-            };
 
             // Create the transform
             let mut transform= Transform::default();
@@ -208,13 +196,31 @@ impl<'s> System<'s> for DestroySystem {
             transform.set_scale(amethyst::core::math::Vector3::new(destroy_config.particle_scale, destroy_config.particle_scale, 1.0));
 
             // Create the entity
-            entities.build_entity()
+            let mut builder = entities.build_entity()
                 .with(sprite_render, &mut sprite_renders)
                 .with(transform, &mut transforms)
-                .with(body, &mut bodies)
-                .with(collider, &mut colliders)
-                .with(TempMarker(None), &mut temp_markers)
-                .build();
+                .with(TempMarker(None), &mut temp_markers);
+
+                if performance_config.dynamic_particles {
+                    // Create the collider
+                    let particle_collider_desc =
+                        np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
+                            nc::shape::Cuboid::new(na::Vector2::new(
+                                destroy_config.particle_scale/2.0,
+                                destroy_config.particle_scale/2.0,
+                            ))
+                        ))
+                        .density(destroy_config.particle_density);
+
+                    let collider = physics::Collider {
+                        handle: physics.add_collider(particle_collider_desc.build(
+                            np::object::BodyPartHandle(body.handle, 0)
+                        ))
+                    };
+                    builder = builder.with(collider, &mut colliders);
+                }
+
+            builder.with(body, &mut bodies).build();
         }
     }
 }

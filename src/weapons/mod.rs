@@ -13,6 +13,9 @@ pub enum Weapon {
     Cannon {
         shooting_timer: Option<f32>,
     },
+    Rocket {
+        shooting_timer: Option<f32>,
+    },
     _Railgun,
     _Shotgun,
 }

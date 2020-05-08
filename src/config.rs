@@ -59,9 +59,15 @@ pub struct CannonConfig {
     pub bullet_velocity: f32,
     pub bullet_restitution: f32,
     pub bullet_sprite_num: usize,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PerformanceConfig {
     pub test_wallscan: bool,
     pub wallscan_toi_mod: f32,
+    pub dynamic_particles: bool,
 }
+
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct DestroyConfig {

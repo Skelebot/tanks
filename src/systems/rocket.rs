@@ -16,13 +16,21 @@ use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
 use crate::config::TankConfig;
-use crate::config::CannonConfig;
 use crate::config::PerformanceConfig;
 use crate::markers::*;
 
-pub struct CannonSystem;
+const ROCKET_SPRITE_NUM: usize = 13;
+const ROCKET_WIDTH: f32 = 6.0;
+const ROCKET_HEIGHT: f32 = 9.0;
+const ROCKET_SELF_SAFETY_MARGIN: f32 = 7.5;
+const ROCKET_VELOCITY: f32 = 50.0;
+const ROCKET_MARGIN: f32 = 0.5;
+const ROCKET_SHOOT_TIME: f32 = 1.0;
+const ROCKET_ACCELERATION: f32 = 3.0;
 
-impl<'s> System<'s> for CannonSystem {
+pub struct RocketSystem;
+
+impl<'s> System<'s> for RocketSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         WriteStorage<'s, Tank>,
@@ -38,9 +46,9 @@ impl<'s> System<'s> for CannonSystem {
         WriteStorage<'s, SpriteRender>,
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
+        WriteStorage<'s, AcceleratingMarker>,
 
         ReadExpect<'s,  TankConfig>,
-        ReadExpect<'s,  CannonConfig>,
         ReadExpect<'s,  PerformanceConfig>,
     );
 
@@ -58,15 +66,15 @@ impl<'s> System<'s> for CannonSystem {
             mut sprite_renders,
             mut temp_markers,
             mut deadly_markers,
+            mut accelerating_markers,
             tank_config,
-            cannon_config,
             performance_config,
         ): Self::SystemData,
     ) {
         // Entities and Bodies to be added to them because we can't borrow bodies twice in the same scope
         let mut bodies_to_add: Vec<(Entity, physics::Body)> = Vec::new();
         for (tank, body) in (&mut tanks, &bodies).join() {
-            if let Weapon::Cannon {
+            if let Weapon::Rocket {
                     ref mut shooting_timer,
             } = tank.weapon {
                 // The player is holding the shoot button and isn't destroyed 
@@ -84,7 +92,7 @@ impl<'s> System<'s> for CannonSystem {
                                 origin: body.position().translation.vector.into(),
                                 dir: body.position().rotation * na::Vector2::new(0.0, 1.0)
                             };
-                            let toi = (tank_config.size_y as f32/2.0) + cannon_config.self_safety_margin + performance_config.wallscan_toi_mod;
+                            let toi = (tank_config.size_y as f32/2.0) + ROCKET_SELF_SAFETY_MARGIN + performance_config.wallscan_toi_mod;
                             let interferences = physics.geom_world.interferences_with_ray(
                                 &physics.colliders, 
                                 &ray, 
@@ -101,33 +109,40 @@ impl<'s> System<'s> for CannonSystem {
                         }
 
                         let pos = na::Isometry2::new(
-                            body.position().translation.vector + body.position().rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + cannon_config.self_safety_margin),
+                            body.position().translation.vector + body.position().rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + ROCKET_SELF_SAFETY_MARGIN),
                             body.position().rotation.angle(),
                         );
-                        let vel_vec = body.position().rotation * na::Vector2::new(0.0, cannon_config.bullet_velocity);
+
+                        let vel_vec = body.position().rotation * na::Vector2::new(0.0, ROCKET_VELOCITY);
                         let velocity = np::algebra::Velocity2::new(
-                            na::Vector2::new(vel_vec.x, vel_vec.y),
-                            5.0,   // Add a spin to the bullet - fixes some errors with zero-angle collisions 
+                            na::Vector2::new(vel_vec.x, vel_vec.y), 0.0
                         );
-                        let shape = nc::shape::ShapeHandle::new(nc::shape::Ball::new(cannon_config.bullet_radius));
+
+                        let shape = nc::shape::ShapeHandle::new(
+                            nc::shape::Cuboid::new(
+                                na::Vector2::new(ROCKET_WIDTH, ROCKET_HEIGHT)
+                            ));
+
                         let body = np::object::RigidBodyDesc::new()
                             .position(pos)
                             .velocity(velocity)
                             .build();
+
                         let body_handle = physics.add_rigid_body(body);
                         let collider = np::object::ColliderDesc::new(shape)
-                            .material(np::material::MaterialHandle::new(
-                                // We use a contact model that doesn't calculate friction either way
-                                np::material::BasicMaterial::new(cannon_config.bullet_restitution, 0.0))
-                            )
+                            //TODO: Remove?
+                            // .material(np::material::MaterialHandle::new(
+                            //     // We use a contact model that doesn't calculate friction either way
+                            //     np::material::BasicMaterial::new(cannon_config.bullet_restitution, 0.0))
+                            // )
                             .ccd_enabled(true)
-                            .margin(cannon_config.bullet_margin)
-                            .density(cannon_config.bullet_density)
+                            .margin(ROCKET_MARGIN)
+                            .density(10.0)
                             .build(np::object::BodyPartHandle(body_handle, 0));
                         let collider_handle = physics.add_collider(collider);
 
                         let sprite_render = SpriteRender {
-                            sprite_number: cannon_config.bullet_sprite_num,
+                            sprite_number: ROCKET_SPRITE_NUM,
                             sprite_sheet: sprite_sheet.handle.clone(),
                         };
                         let mut transform = Transform::default();
@@ -139,12 +154,13 @@ impl<'s> System<'s> for CannonSystem {
                             .with(physics::Collider::new(collider_handle), &mut colliders)
                             // We would do that but we already borrowed bodies, so we have to build the entity now and add the body later
                             //.with(physics::Body{handle: body_handle}, &mut bodies)
-                            .with(TempMarker(Some(cannon_config.bullet_time)), &mut temp_markers)
+                            .with(TempMarker(None), &mut temp_markers)
+                            .with(AcceleratingMarker(ROCKET_ACCELERATION), &mut accelerating_markers)
                             .with(DeadlyMarker, &mut deadly_markers)
                             .build();
                         bodies_to_add.push((ent, physics::Body::new(body_handle)));
                         // Start the shooting timer
-                        shooting_timer.replace(cannon_config.shoot_time);
+                        shooting_timer.replace(ROCKET_SHOOT_TIME);
                     }
                 }
                 // Update
@@ -159,5 +175,6 @@ impl<'s> System<'s> for CannonSystem {
         for (entity, body) in bodies_to_add.into_iter() {
             bodies.insert(entity, body).expect("Something went wrong when adding bodies to entities");
         }
+
     }
 }
