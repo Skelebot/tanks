@@ -95,7 +95,6 @@ impl<'s> System<'s> for SpawnSystem {
             time
         ): Self::SystemData,
     ) {
-
         // If the level is about to be reset, zero the number of spawns
         // and keep the spawn timer frozen. This won't spawn any new spawns
         // and won't remove existing ones. When the LevelSystem resets the level,
@@ -202,7 +201,7 @@ impl<'s> System<'s> for SpawnSystem {
         // of a spawn.
         // We choose to use sensor colliders with static rigidbodies for more uniform code.
         physics.maintain();
-        // TODO: Add a performance setting
+        // TODO_VL: Add a performance setting
         for (spawn, collider, entity) in (&spawns, &colliders, &entities).join() {
             if let Some(interactions) =
                 physics.geom_world.interactions_with(&physics.colliders, collider.handle, false)
@@ -217,6 +216,7 @@ impl<'s> System<'s> for SpawnSystem {
                             // Change the tank's weapon or something else depending on the spawn's type
                             use std::mem::discriminant; // Returns a unique identifier for an enum variant
                                                         // which lets us check if two values are the same variant
+                            #[allow(clippy::single_match)]
                             match &spawn.s_type {
                                 SpawnType::Weapon(spawn_weapon) => {
                                     // Pick up only if the tank doesn't already have that weapon
@@ -233,6 +233,7 @@ impl<'s> System<'s> for SpawnSystem {
                 }
             }
         }
+
         // Remove the spawns
         for entity in spawns_to_remove {
             // Remove bodies and colliders belonging to entities with a TempMarker Component

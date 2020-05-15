@@ -17,7 +17,6 @@ use amethyst::{
     window::{DisplayConfig, EventLoop},
 };
 use std::time::Duration;
-
 mod states;
 mod level;
 mod utils;

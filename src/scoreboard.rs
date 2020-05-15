@@ -11,10 +11,10 @@ pub struct Scoreboard {
 
 impl Scoreboard {
     /// Creates a new Scoreboard; By default every team's score is 0
-    ///
+
     /// Because we can't iter over enums in Rust, we can't determine
     /// the length of the Team enum, so this Vec declaration has to 
-    /// be changed everytime we add a team or remove one
+    /// be changed everytime we add a team or remove one. Oof.
     pub fn new() -> Self {
         Scoreboard {
             scores: vec![0, 0],
@@ -24,11 +24,7 @@ impl Scoreboard {
     }
     /// Report that the tank was destroyed so we can determine the winner later
     pub fn report_destroyed(&mut self, team: Team) {
-        let pos = match self.alive.iter().position(|x| *x == team) {
-            Some(x) => Some(x),
-            None => None,
-        };
-        self.alive.remove(pos.unwrap());
+        self.alive.retain(|t| *t != team);
     }
     
     /// Check who is still alive (only one tank should be) and update it's score

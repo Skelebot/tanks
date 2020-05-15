@@ -2,7 +2,10 @@ use nphysics2d as np;
 use nalgebra as na;
 use amethyst::{
     core::Transform,
-    renderer::{SpriteRender},
+    renderer::{
+        resources::Tint,
+        SpriteRender
+    },
     ecs::{
         System, Entities, Join,
         WriteStorage, Read, ReadExpect, WriteExpect, ReadStorage,
@@ -30,6 +33,7 @@ impl<'s> System<'s> for LevelSystem {
         Entities<'s>,
         ReadExpect<'s, TanksSpriteSheet>,
         WriteStorage<'s, SpriteRender>,
+        WriteStorage<'s, Tint>,
         WriteStorage<'s, Transform>,
         WriteExpect<'s, physics::Physics>,
         WriteStorage<'s, physics::Body>,
@@ -52,6 +56,7 @@ impl<'s> System<'s> for LevelSystem {
             entities,
             sprite_sheet,
             mut sprite_renders,
+            mut tints,
             mut transforms,
             mut physics,
             mut bodies,
@@ -65,7 +70,6 @@ impl<'s> System<'s> for LevelSystem {
             accelerating_markers,
         ): Self::SystemData,
     ) {
-        
         // Remove entities with a TempMarker Component (like projectiles)
         // whose timer ran out, count down timers
         for (entity, temp_marker) in (&entities, &mut temp_markers).join() {
@@ -116,12 +120,22 @@ impl<'s> System<'s> for LevelSystem {
                     entities.delete(entity).expect("Couldn't remove the entity");
                 }
 
-                // Reset the weapons
-                for (tank, body) in (&mut tanks, &bodies).join() {
+                // Reset the weapons and tanks
+                for (tank, body, tint) in (&mut tanks, &bodies, &mut tints).join() {
+                    // Re-enable physics bodies of destroyed tanks
+                    let rb = physics.get_rigid_body_mut(body.handle).unwrap();
+                    if tank.state == TankState::Destroyed {
+                        use np::object::Body;
+                        rb.set_status(np::object::BodyStatus::Dynamic);
+                    }
+                    // Reset the velocity (this resets both angular and linear velocities)
+                    rb.set_velocity(np::algebra::Velocity2::zero());
+
+                    // Show the tank's sprite
+                    tint.0.alpha = 1.0;
+
                     tank.weapon = Weapon::default();
                     tank.state = TankState::Alive;
-                    // Re-enable physics bodies of all (TODO_O: Destroyed only) tanks
-                    physics.get_body_mut(body.handle).unwrap().set_status(np::object::BodyStatus::Dynamic);
                 }
 
                 level.rebuild(

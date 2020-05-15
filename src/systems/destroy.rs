@@ -9,7 +9,10 @@ use amethyst::{
         Entities, Join, System,
         WriteStorage, WriteExpect, ReadExpect,
     },
-    renderer::SpriteRender,
+    renderer::{
+        resources::Tint,
+        SpriteRender,
+    },
     core::transform::Transform,
 };
 
@@ -39,6 +42,7 @@ impl<'s> System<'s> for DestroySystem {
 
         ReadExpect<'s, TanksSpriteSheet>,
         WriteStorage<'s, SpriteRender>,
+        WriteStorage<'s, Tint>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
@@ -63,6 +67,7 @@ impl<'s> System<'s> for DestroySystem {
             mut tanks,
             sprite_sheet,
             mut sprite_renders,
+            mut tints,
             mut transforms,
             mut temp_markers,
             deadly_markers,
@@ -91,6 +96,11 @@ impl<'s> System<'s> for DestroySystem {
                     let hit_handle = interaction.2;
                     // Match tank to collider handle and determine it's team
                     for (tank, tank_collider) in (&mut tanks, &colliders).join() {
+                        // We can't destroy a tank that's already destroyed
+                        // This shouldn't even happen because we deactivate the rigidbody of dead tanks,
+                        // but somehow still does. This didn't happen back when we were moving dead tanks
+                        // out of frame, but now we only deactivate and hide them, so this is (somehow) necessary.
+                        if tank.state != TankState::Alive { continue; }
                         if hit_handle == tank_collider.handle {
                             // We change the tank's state to 'Hit' so that the following code 
                             // will do the explosion and stuff
@@ -105,7 +115,7 @@ impl<'s> System<'s> for DestroySystem {
         // Position, angle, velocity, spriterender
         let mut particles = Vec::<(na::Vector2::<f32>, f32, f32, SpriteRender)>::new();
 
-        for (tank, body) in (&mut tanks, &bodies).join() {
+        for (tank, body, tint) in (&mut tanks, &bodies, &mut tints).join() {
             if tank.state != TankState::Hit { continue; }
             // Tell the scoreboard the tank lost the round
             scoreboard.report_destroyed(tank.team);
@@ -145,29 +155,25 @@ impl<'s> System<'s> for DestroySystem {
 
             let rb = physics.get_rigid_body_mut(body.handle).unwrap();
 
-            // Hide the tank
-            // In order to hide the tank the easiest method is to move it off-screen just before disabling it
-            // We assume the tank isn't bigger than 100 pixels
-            // Also this shouldn't be in absolute pixels because we may want to move the camera
-
-            // TODO_H: Find a better way to hide sprites
-            let new_pos = na::Isometry2::new(
-                na::Vector2::new(-100.0, -100.0),
-                rb.position().rotation.angle()
-            );
-            rb.set_position(new_pos);
+            // "Hide" the tank
             // Deactivate the tank's RigidBody
             use nphysics2d::object::Body;
-            physics.get_rigid_body_mut(body.handle).unwrap().set_status(np::object::BodyStatus::Disabled);
-            // Start the level reset countdown
-            level.reset_timer.replace(destroy_config.level_reset_delay);
+            rb.set_status(np::object::BodyStatus::Disabled);
+            // Hide the tank's sprite
+            // This actually sets the sprite's transparency to 100%, making it invisible,
+            // though the sprite and rigidbody are still there.
+            tint.0.alpha = 0.0;
 
+            // Set the tank's state to Destroyed
             tank.state = TankState::Destroyed;
 
             if destroy_config.shake_enabled {
                 // Start shaking the camera
                 cam_shake.dms.push((destroy_config.tank_explosion_shake_duration, destroy_config.tank_explosion_shake_magnitude));
             }
+
+            // Start the level reset countdown
+            level.reset_timer.replace(destroy_config.level_reset_delay);
         }
 
         // Create the particles

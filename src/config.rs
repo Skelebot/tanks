@@ -19,13 +19,10 @@ pub struct MazeConfig {
     pub cell_width: f32,
     pub cell_height: f32,
     pub w_thickness: f32,
-    pub rb_margin: f32,
-    pub w_density: f32,
-    pub w_damping: f32,
-    pub dynamic_walls: bool,
     pub maze_width: usize,
     pub maze_height: usize,
     pub sprite_num: usize,
+    pub sprite_length: f32,
     pub sprite_width: f32,
 }
 
@@ -46,6 +43,10 @@ pub struct BeamerConfig {
     pub overheat_time: f32,
     pub self_safety_margin: f32,
     pub shake_magnitude: f32,
+    pub lock_rotation_when_heating: bool,
+    pub lock_movement_when_heating: bool,
+    pub lock_rotation_when_shooting: bool,
+    pub lock_movement_when_shooting: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

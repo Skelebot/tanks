@@ -83,12 +83,6 @@ impl<'s> System<'s> for BeamerSystem {
                     // If the weapon can shoot and the weapon is not ready to shoot
                     if *heating_progress < 1.0 && overheat_timer.is_none() && shooting_timer.is_none() {
 
-                        // Lock the tank in place
-                        // TODO: Lock the velocity so the tank can slow down instead
-                        // FIXME: Should the tank be able to rotate? Do not zero angular velocity
-                        // Disabled for testing
-                        // body.set_velocity(np::algebra::Velocity2::zero());
-
                         *heating_progress += time.delta_seconds() / beamer_config.heat_time;
 
                         if heating_square.is_none() {
@@ -106,8 +100,11 @@ impl<'s> System<'s> for BeamerSystem {
                             // Make the square appear over the tank sprite and over wall sprites
                             square_transform.set_translation_z(0.10);
                             // The heating square is a purely cosmetic entity
-                            // TODO: Make the heating square also a sensor so the tanks can run into each other
+                            // IDEA: Make the heating square also a sensor so the tanks can run into each other
                             //       while heating their beamers without actually shooting them to kill the other player
+                            // REVIEW: We don't really want to do this. It introduces another collider that slows down the simulation,
+                            //         AND we would have to introduce collision groups because it would constantly collide with
+                            //         it's own tank and walls. It would be a neat detail, but makes a lot of things more wonky and weird.
                             let square_entity = entities
                                 .build_entity()
                                 .with(square_transform, &mut transforms)
@@ -150,8 +147,7 @@ impl<'s> System<'s> for BeamerSystem {
                             beam_transform.set_translation_z(0.2);
                             // We don't want to see the beam until it's body position gets updated, so we set the
                             // initial position to something safely off-screen
-                            // TODO: Find a method to hide and show sprites
-                            let tmp_pos = na::Isometry2::translation(-100.0, 0.0);
+                            let tmp_pos = na::Isometry2::translation(-1000.0, 0.0);
 
                             // Create a sensor for the beam for detecting physics bodies in the beam
                             let shape = nc::shape::ShapeHandle::new(nc::shape::Cuboid::new(na::Vector2::new(scale.x/2.0, scale.y/2.0)));
@@ -192,7 +188,7 @@ impl<'s> System<'s> for BeamerSystem {
                 let body = physics.get_rigid_body_mut(body.handle).unwrap();
                 if let Some(square) = heating_square {
                     // Update the heating square's transform
-                    // TODO: Clean up
+                    // TODO_VL: Clean up
                     let rotation = na::UnitQuaternion::from_axis_angle(&na::Vector::z_axis(), body.position().rotation.angle());
                     // TODO: Removing this is impossible until nalgebra versions from Amethyst and NPhysics match
                     let amethyst_rotation = amethyst::core::math::UnitQuaternion::from_axis_angle(&amethyst::core::math::Vector::z_axis(), body.position().rotation.angle());
@@ -233,11 +229,6 @@ impl<'s> System<'s> for BeamerSystem {
                 }
                 
                 if let Some(timer) = shooting_timer {
-                    // Lock the tank in place
-                    // TODO: Lock the velocity so the tank can slow down instead
-                    // FIXME: Should the tank be able to rotate? Do not zero angular velocity
-                    // Disabled for testing
-                    // body.set_velocity(np::algebra::Velocity2::zero());
 
                     // Decrease the shooting timer
                     *timer -= time.delta_seconds();
@@ -288,6 +279,7 @@ fn test_mut_enum() {
     let mut inst = A::Variant { sth: 0.2 };
 
     match inst {
+        // `ref mut` is the key here
         A::Variant { ref mut sth } => *sth += 1.0,
         _ => (),
     }

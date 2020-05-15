@@ -8,7 +8,11 @@ use amethyst::{
     },
     input::{is_close_requested, is_key_down, VirtualKeyCode, get_key, ElementState},
     prelude::*,
-    renderer::{Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture},
+    renderer::{
+        palette::Srgba,
+        resources::Tint,
+        Camera, ImageFormat, SpriteRender, SpriteSheet, SpriteSheetFormat, Texture
+    },
     window::ScreenDimensions,
     ui::{Anchor, TtfFormat, UiText, UiTransform, UiImage},
 };
@@ -319,6 +323,7 @@ fn init_players(world: &mut World, tanks_sprite_sheet: &TanksSpriteSheet, _dimen
     world.create_entity()
         .with(Tank::new(Team::Red, Weapon::default()))
         .with(sprites[0].clone())
+        .with(Tint(Srgba::new(1.0, 1.0, 1.0, 1.0)))
         .with(red_body)
         .with(red_collider)
         .with(red_transform)
@@ -328,6 +333,7 @@ fn init_players(world: &mut World, tanks_sprite_sheet: &TanksSpriteSheet, _dimen
     world.create_entity()
        .with(Tank::new(Team::Blue, Weapon::default()))
        .with(sprites[1].clone())
+       .with(Tint(Srgba::new(1.0, 1.0, 1.0, 1.0)))
        .with(blue_body)
        .with(blue_collider)
        .with(blue_transform)
