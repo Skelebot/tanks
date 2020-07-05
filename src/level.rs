@@ -1,18 +1,23 @@
 use nphysics2d as np;
 use ncollide2d as nc;
 use nalgebra as na;
+
 use amethyst::{
     prelude::*,
     ecs::{Entities, WriteStorage, WriteExpect},
     core::Transform,
-    renderer::SpriteRender,
+    core::math as core_na,
     window::ScreenDimensions,
+    renderer::palette::Srgba,
+    renderer::resources::Tint,
 };
+
 use crate::utils::mazegen::Maze;
-use crate::utils::TanksSpriteSheet;
+use crate::markers::{DynamicColorMarker, ColorKey};
 use crate::markers::TempMarker;
 use crate::physics;
 use crate::config::MazeConfig;
+use crate::graphics::{ShapeRender, QuadMesh};
 
 pub struct MazeLevel {
     pub maze: Maze,
@@ -22,7 +27,7 @@ pub struct MazeLevel {
 
 impl MazeLevel {
 
-    pub fn new(world: &mut World, sprite_sheet: &TanksSpriteSheet, dimensions: &ScreenDimensions) -> Self {
+    pub fn new(world: &mut World, dimensions: &ScreenDimensions) -> Self {
         let maze_config = world.fetch::<MazeConfig>();
 
         let mut maze = Maze::new(maze_config.maze_width, maze_config.maze_height);
@@ -38,7 +43,9 @@ impl MazeLevel {
         level.rebuild(
             &maze_config,
             &world.entities(),
-            sprite_sheet,
+            &world.fetch::<QuadMesh>(),
+            &mut world.system_data(),
+            &mut world.system_data(),
             &mut world.system_data(),
             &mut world.system_data(),
             &mut world.system_data(),
@@ -51,13 +58,17 @@ impl MazeLevel {
         level
     }
 
+    // This is terrible, perhaps use tuples and a type, just like in a system?
+    // TODO_M: Use a tuple and a type for system data
     #[allow(clippy::too_many_arguments)]
     pub fn rebuild(
         &mut self, 
         maze_config: &MazeConfig,
         entities: &Entities, 
-        ss_handle: &TanksSpriteSheet,
-        mut sprite_renders: &mut WriteStorage<SpriteRender>,
+        quad_mesh: &QuadMesh,
+        mut shape_renders: &mut WriteStorage<ShapeRender>,
+        mut tints: &mut WriteStorage<Tint>,
+        mut dyn_color_markers: &mut WriteStorage<DynamicColorMarker>,
         mut transforms: &mut WriteStorage<Transform>,
         physics: &mut WriteExpect<physics::Physics>,
         mut bodies: &mut WriteStorage<physics::Body>,
@@ -158,12 +169,6 @@ impl MazeLevel {
         //------------------------------
 
         for (pos, rb, horizontal) in w_pos_rb_h.into_iter() {
-            // Create Physics for the entity
-            // Create a renderable sprite
-            let sprite_render = SpriteRender {
-                sprite_sheet: ss_handle.handle.clone(),
-                sprite_number: maze_config.sprite_num
-            };
 
             // Sprite's transform
             let mut wall_transform = Transform::default();
@@ -178,10 +183,13 @@ impl MazeLevel {
             let half_length = (if horizontal { maze_config.cell_width } else { maze_config.cell_height } + maze_config.w_thickness) / 2.;
             let half_width = maze_config.w_thickness / 2.;
 
-            wall_transform.set_scale(amethyst::core::math::Vector3::new(
-                (half_length * 2.) / maze_config.sprite_length, 
-                (half_width * 2.) / maze_config.sprite_width, 1.0
+            wall_transform.set_scale(core_na::Vector3::new(
+                half_length * 2., half_width * 2., 1.0
             ));
+
+            let shape_render = ShapeRender {
+                mesh: quad_mesh.handle.clone()
+            };
 
             let wall_collider = 
                 np::object::ColliderDesc::new(nc::shape::ShapeHandle::new(
@@ -203,7 +211,9 @@ impl MazeLevel {
             // Create the entity
             entities
                 .build_entity()
-                .with(sprite_render, &mut sprite_renders)
+                .with(shape_render, &mut shape_renders)
+                .with(Tint(Srgba::default()), &mut tints)
+                .with(DynamicColorMarker(ColorKey::Walls), &mut dyn_color_markers)
                 .with(wall_transform, &mut transforms)
                 .with(TempMarker(None), &mut temp_markers)
                 .with(wall_body, &mut bodies)

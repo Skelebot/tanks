@@ -21,9 +21,9 @@ pub struct MazeConfig {
     pub w_thickness: f32,
     pub maze_width: usize,
     pub maze_height: usize,
-    pub sprite_num: usize,
-    pub sprite_length: f32,
-    pub sprite_width: f32,
+    //pub sprite_num: usize,
+    //pub sprite_length: f32,
+    //pub sprite_width: f32,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

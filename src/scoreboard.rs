@@ -18,7 +18,7 @@ impl Scoreboard {
     pub fn new() -> Self {
         Scoreboard {
             scores: vec![0, 0],
-            alive: vec![Team::Red, Team::Blue],
+            alive: vec![Team::P1, Team::P2],
             texts: vec![]
         }
     }
@@ -37,8 +37,8 @@ impl Scoreboard {
                 .text = self.get_score(*winner).to_string();
         }
         self.alive.clear();
-        self.alive.push(Team::Red);
-        self.alive.push(Team::Blue);
+        self.alive.push(Team::P1);
+        self.alive.push(Team::P2);
     }
 
     /// Reads a score for a team

@@ -48,12 +48,12 @@ impl<'s> System<'s> for TankSystem {
             if tank.state == TankState::Alive {
                 // TODO_L: Parametric input axis names and teams for any arbitrary number of players
                 let (mov_forward, mov_side, fire) = match tank.team {
-                    Team::Red => (
+                    Team::P1 => (
                         input.axis_value("p1_forward").expect("axis p1_forward not defined"),
                         input.axis_value("p1_side").expect("axis p1_side not defined"),
                         input.action_is_down("p1_fire").expect("action p1_fire not defined")
                     ),
-                    Team::Blue => (
+                    Team::P2 => (
                         input.axis_value("p2_forward").expect("axis p2_forward not defined"),
                         input.axis_value("p2_side").expect("axis p2_side not defined"),
                         input.action_is_down("p2_fire").expect("action p2_fire not defined")

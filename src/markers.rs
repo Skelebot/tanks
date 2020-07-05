@@ -1,4 +1,4 @@
-use amethyst::ecs::{Component, NullStorage, VecStorage, DenseVecStorage};
+use amethyst::ecs::{Component, NullStorage, DenseVecStorage};
 
 /// Used to mark temporary entities that should be deleted when changing levels
 /// Optional time after which the entity will be removed
@@ -6,7 +6,7 @@ use amethyst::ecs::{Component, NullStorage, VecStorage, DenseVecStorage};
 #[derive(Default)]
 pub struct TempMarker(pub Option<f32>);
 impl Component for TempMarker {
-    type Storage = VecStorage<Self>;
+    type Storage = DenseVecStorage<Self>;
 }
 
 /// Used to mark entities that have colliders that destroy tanks
@@ -16,8 +16,15 @@ impl Component for DeadlyMarker {
     type Storage = NullStorage<Self>;
 }
 
-#[derive(Default)]
-pub struct AcceleratingMarker(pub f32);
-impl Component for AcceleratingMarker {
+#[derive(Debug)]
+pub enum ColorKey {
+    Background,
+    Text,
+    Walls,
+    P1, P2, P3, P4
+}
+/// Used to mark entities that have a dynamic color.
+pub struct DynamicColorMarker(pub ColorKey);
+impl Component for DynamicColorMarker {
     type Storage = DenseVecStorage<Self>;
 }

@@ -125,8 +125,8 @@ impl<'s> System<'s> for DestroySystem {
 
                 // Create debris particles with random SpriteRenders and velocity vectors
                 let sprite_numbers = match tank.team {
-                    Team::Red => [&destroy_config.particle_sprite_nums[..], &destroy_config.red_particle_sprite_nums[..]].concat(),
-                    Team::Blue => [&destroy_config.particle_sprite_nums[..], &destroy_config.blue_particle_sprite_nums[..]].concat(),
+                    Team::P1 => [&destroy_config.particle_sprite_nums[..], &destroy_config.red_particle_sprite_nums[..]].concat(),
+                    Team::P2 => [&destroy_config.particle_sprite_nums[..], &destroy_config.blue_particle_sprite_nums[..]].concat(),
                 };
                 // Use uniform distribution
                 let numbers = Uniform::new(0, sprite_numbers.len());

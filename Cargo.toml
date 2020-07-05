@@ -17,6 +17,8 @@ nalgebra = "0.20.0"
 derivative = "2.1.0"
 failure = "0.1.7"
 
+glsl-layout = "0.3.2"
+
 [dependencies.amethyst]
 git = "https://github.com/amethyst/amethyst.git"
 branch = "wasm"

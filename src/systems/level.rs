@@ -4,11 +4,10 @@ use amethyst::{
     core::Transform,
     renderer::{
         resources::Tint,
-        SpriteRender
     },
     ecs::{
         System, Entities, Join,
-        WriteStorage, Read, ReadExpect, WriteExpect, ReadStorage,
+        WriteStorage, Read, ReadExpect, WriteExpect
     },
     window::ScreenDimensions,
     core::timing::Time,
@@ -17,11 +16,11 @@ use amethyst::{
 use crate::level::MazeLevel;
 use crate::tank::{Tank, TankState};
 use crate::markers::*;
-use crate::utils::TanksSpriteSheet;
 use crate::physics;
 use crate::config::MazeConfig;
 use crate::scoreboard::Scoreboard;
 use crate::weapons::Weapon;
+use crate::graphics::{ShapeRender, QuadMesh};
 
 pub struct LevelSystem;
 
@@ -31,8 +30,9 @@ impl<'s> System<'s> for LevelSystem {
         ReadExpect<'s,  MazeConfig>,
         WriteExpect<'s, MazeLevel>,
         Entities<'s>,
-        ReadExpect<'s, TanksSpriteSheet>,
-        WriteStorage<'s, SpriteRender>,
+        ReadExpect<'s, QuadMesh>,
+        WriteStorage<'s, ShapeRender>,
+        WriteStorage<'s, DynamicColorMarker>,
         WriteStorage<'s, Tint>,
         WriteStorage<'s, Transform>,
         WriteExpect<'s, physics::Physics>,
@@ -45,7 +45,6 @@ impl<'s> System<'s> for LevelSystem {
 
         WriteExpect<'s, Scoreboard>,
         WriteStorage<'s, UiText>,
-        ReadStorage<'s, AcceleratingMarker>,
     );
 
     fn run(
@@ -54,8 +53,9 @@ impl<'s> System<'s> for LevelSystem {
             maze_config,
             mut level,
             entities,
-            sprite_sheet,
-            mut sprite_renders,
+            quad_mesh,
+            mut shape_renders,
+            mut dyn_color_markers,
             mut tints,
             mut transforms,
             mut physics,
@@ -67,7 +67,6 @@ impl<'s> System<'s> for LevelSystem {
             time,
             mut scoreboard,
             mut ui_text,
-            accelerating_markers,
         ): Self::SystemData,
     ) {
         // Remove entities with a TempMarker Component (like projectiles)
@@ -87,15 +86,6 @@ impl<'s> System<'s> for LevelSystem {
                     entities.delete(entity).expect("Couldn't remove the entity");
                 }
             }
-        }
-        // Add velocity to entities with a AcceleratingMarker
-        for (accelerating_marker, body) in (&accelerating_markers, &bodies).join() {
-            let rb = physics.get_rigid_body_mut(body.handle).unwrap();
-            rb.set_linear_velocity(
-                rb.velocity().linear +
-                rb.position().rotation *
-                na::Vector2::new(0.0, accelerating_marker.0)
-            )
         }
         if let Some(ref mut timer) = level.reset_timer {
             *timer -= time.delta_seconds();
@@ -141,8 +131,10 @@ impl<'s> System<'s> for LevelSystem {
                 level.rebuild(
                     &maze_config,
                     &entities, 
-                    &sprite_sheet,
-                    &mut sprite_renders, 
+                    &quad_mesh,
+                    &mut shape_renders, 
+                    &mut tints,
+                    &mut dyn_color_markers,
                     &mut transforms,
                     &mut physics,
                     &mut bodies,

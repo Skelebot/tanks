@@ -1,0 +1,9 @@
+(
+    background: { red: 0.0, green: 0.0, blue: 0.0, alpha: 1.0 },
+    text:       { red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0 },
+    walls:      { red: 1.0, green: 1.0, blue: 1.0, alpha: 1.0 },
+    p1:         { red: 1.0, green: 0.0, blue: 0.0, alpha: 1.0 },
+    p2:         { red: 0.0, green: 1.0, blue: 0.0, alpha: 1.0 },
+    p3:         { red: 0.0, green: 0.0, blue: 1.0, alpha: 1.0 },
+    p4:         { red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0 }
+)

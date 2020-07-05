@@ -1,4 +1,5 @@
 pub mod mazegen;
+pub mod color;
 
 use amethyst::assets::Handle;
 use amethyst::renderer::SpriteSheet;

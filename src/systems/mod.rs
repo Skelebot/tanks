@@ -4,7 +4,7 @@ mod destroy;
 mod beamer;
 mod cannon;
 mod spawn;
-mod rocket;
+mod color;
 
 pub mod camshake;
 
@@ -14,6 +14,6 @@ pub use beamer::BeamerSystem;
 pub use cannon::CannonSystem;
 pub use destroy::DestroySystem;
 pub use spawn::SpawnSystem;
-pub use rocket::RocketSystem;
+pub use color::ColorSystem;
 
 pub use camshake::CameraShakeSystem;
