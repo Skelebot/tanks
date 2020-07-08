@@ -21,7 +21,7 @@ use super::TintBox as TintBoxComponent;
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd, AsStd140)]
 #[repr(C, align(16))]
 pub struct Tint {
-    /// Tint color as `Rgba32Sfloat`
+    /// Tint color as `Srgba32Sfloat`
     pub tint: vec4,
 }
 
@@ -33,7 +33,7 @@ impl AsAttribute for Tint {
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd, AsStd140)]
 #[repr(C, align(16))]
 pub struct TintBox {
-    /// Tint color as `Rgba32Sfloat`
+    /// Tint color as `Srgba32Sfloat`
     pub tint: vec4,
 }
 

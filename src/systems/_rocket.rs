@@ -130,11 +130,6 @@ impl<'s> System<'s> for RocketSystem {
 
                         let body_handle = physics.add_rigid_body(body);
                         let collider = np::object::ColliderDesc::new(shape)
-                            //TODO: Remove?
-                            // .material(np::material::MaterialHandle::new(
-                            //     // We use a contact model that doesn't calculate friction either way
-                            //     np::material::BasicMaterial::new(cannon_config.bullet_restitution, 0.0))
-                            // )
                             .ccd_enabled(true)
                             .margin(ROCKET_MARGIN)
                             .density(10.0)

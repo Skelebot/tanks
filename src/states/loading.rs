@@ -5,12 +5,16 @@ use amethyst::{
 use amethyst::{
     assets::{AssetStorage, Handle, Loader, AssetLoaderSystemData, ProgressCounter, Completion},
     core::transform::Transform,
+    core::math as na,
     renderer::{
         shape::Shape,
 
         types::Mesh,
         rendy::mesh::MeshBuilder,
         rendy::core::types::vertex::Position,
+
+        resources::Tint,
+        palette::Srgba,
 
         Camera, ImageFormat, SpriteSheet, SpriteSheetFormat, Texture
     },
@@ -19,6 +23,7 @@ use amethyst::{
 };
 use crate::graphics::{TintBox, ShapeRender, CircleMesh, QuadMesh};
 use crate::utils::{TanksSpriteSheet, SpawnsSpriteSheet, color::Colorscheme, color::ColorschemeSet};
+use crate::markers::{DynamicColorMarker, ColorKey};
 use crate::systems::camshake::CameraShake;
 
 use crate::config;
@@ -47,6 +52,7 @@ impl SimpleState for LoadingState {
 
         // Initialize the CameraShake resource
         world.insert(CameraShake::default());
+        // Initialize the physics engine
         world.insert(physics::Physics::new());
 
         let mut mesh_builder = MeshBuilder::new();
@@ -71,28 +77,7 @@ impl SimpleState for LoadingState {
             (quad, circle)
         });
 
-        let base = world.read_resource::<Loader>().load(
-            "colors/base.ron",
-            amethyst::assets::RonFormat,
-            &mut self.progress,
-            &world.read_resource::<AssetStorage<Colorscheme>>(),
-        );
-
-        let dark = world.read_resource::<Loader>().load(
-            "colors/dark.ron",
-            amethyst::assets::RonFormat,
-            &mut self.progress,
-            &world.read_resource::<AssetStorage<Colorscheme>>(),
-        );
-
-        let mut colorscheme_set = ColorschemeSet::new();
-        colorscheme_set.add_current_scheme("base".to_string(), base);
-        colorscheme_set.add_scheme("dark".to_string(), dark);
-        colorscheme_set.set_current("dark".to_string());
-
         load_resources(world);
-
-        world.insert(colorscheme_set);
 
         world.insert(QuadMesh { handle: quad });
         world.insert(CircleMesh { handle: circle });
@@ -104,6 +89,11 @@ impl SimpleState for LoadingState {
 
         // Place the camera
         init_camera(world, &dimensions);
+
+        // Create the background
+        init_background(world, &dimensions);
+
+        load_colorschemes(world, &mut self.progress);
 
         // Load our sprite sheets
         let tanks_sprite_sheet = TanksSpriteSheet::new(load_sprite_sheet(world, "tanks", &mut self.progress));
@@ -164,6 +154,43 @@ fn load_sprite_sheet(world: &mut World, name: &str, progress: &mut ProgressCount
     )
 }
 
+/// Create a background for the game
+/// Because Amethyst doesn't provide code for hot-swapping the clear color
+/// and we need to match background color with colorschemes, we create a large
+/// quad that is drawn before everything else, and change its color.
+/// It's centered vertically and horizontally, scaled twice as large as our window
+/// to have some margin when we shake the camera.
+/// Optionally, we could add some logic to the camera system that always positions
+/// the background directly in front of the camera before rendering
+/// or a separate system only for controlling the background, but that isn't needed for now.
+fn init_background(world: &mut World, dimensions: &ScreenDimensions) {
+    let mut transform = Transform::default();
+    transform.set_scale(na::Vector3::new(
+        dimensions.width() * 2.0,
+        dimensions.height() * 2.0,
+        1.0
+    ));
+    transform.set_translation_xyz(
+        dimensions.width() / 2.0,
+        dimensions.height() / 2.0,
+        // We use an orthographic camera, so it doesn't really matter how far away it is,
+        // it will always be the same size
+        -100.0
+    );
+
+    let shape_render = ShapeRender {
+        mesh: (*world.fetch::<QuadMesh>()).handle.clone()
+    };
+
+    world.register::<DynamicColorMarker>();
+    world.create_entity()
+        .with(shape_render)
+        .with(transform)
+        .with(Tint(Srgba::default()))
+        .with(DynamicColorMarker(ColorKey::Background))
+        .build();
+}
+
 /// Initialize a 2D orhographic camera placed in the middle
 /// of the screen, and covering the entire screen
 fn init_camera(world: &mut World, dimensions: &ScreenDimensions) {
@@ -197,6 +224,37 @@ fn load_resources(world: &mut World) {
     world.insert(spawn_config);
     world.insert(destroy_config);
     world.insert(performance_config);
+}
+
+use std::fs;
+fn load_colorschemes(world: &mut World, progress: &mut ProgressCounter) {
+    let mut colorscheme_set = ColorschemeSet::new();
+
+    // Unless someone puts a invalid file in the colors directory,
+    // none of those `unwrap()`s may panic
+    let dir = application_dir("res/colors").unwrap();
+    let paths = fs::read_dir(dir).unwrap();
+
+    for path in paths {
+        let file = path.unwrap();
+
+        if file.file_type().unwrap().is_file() {
+            let name = file.file_name().into_string().unwrap();
+            let actual_name = name.split('.').next().unwrap();
+
+            let scheme = world.read_resource::<Loader>().load(
+                format!("colors/{}.ron", actual_name),
+                amethyst::assets::RonFormat,
+                &mut (*progress),
+                &world.read_resource::<AssetStorage<Colorscheme>>(),
+            );
+            colorscheme_set.add_scheme(actual_name.to_string(), scheme);
+        }
+    }
+
+    colorscheme_set.set_current("default");
+
+    world.insert(colorscheme_set);
 }
 
 impl Default for LoadingState {

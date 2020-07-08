@@ -23,6 +23,15 @@ pub enum ColorKey {
     Walls,
     P1, P2, P3, P4
 }
+use crate::tank;
+impl From<tank::Team> for ColorKey {
+    fn from(t: tank::Team) -> Self {
+        match t {
+            tank::Team::P1 => Self::P1,
+            tank::Team::P2 => Self::P2,
+        }
+    }
+}
 /// Used to mark entities that have a dynamic color.
 pub struct DynamicColorMarker(pub ColorKey);
 impl Component for DynamicColorMarker {

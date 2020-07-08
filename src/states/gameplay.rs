@@ -237,7 +237,6 @@ fn init_players(world: &mut World) {
     let starting_positions = world.read_resource::<MazeLevel>().starting_positions;
 
     // Create the SpriteRenders
-    //TODO: Determine players' sprite numbers from a config (prefab?)
     let sprites: Vec<SpriteRender> = tank_config.sprite_nums.iter()
         .map(|i| SpriteRender {
             sprite_sheet: world.fetch::<TanksSpriteSheet>().handle.clone(),

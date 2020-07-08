@@ -1,9 +1,0 @@
-(
-    background: { red: 0.125, green: 0.137, blue: 0.153, alpha: 1.0 },
-    text:       { red: 0.918, green: 0.918, blue: 0.918, alpha: 1.0 },
-    walls:      { red: 0.565, green: 0.565, blue: 0.565, alpha: 1.0 },
-    p1:         { red: 1.000, green: 0.180, blue: 0.388, alpha: 1.0 },
-    p2:         { red: 0.031, green: 0.851, blue: 0.839, alpha: 1.0 },
-    p3:         { red: 0.0, green: 0.0, blue: 1.0, alpha: 1.0 },
-    p4:         { red: 1.0, green: 0.0, blue: 1.0, alpha: 1.0 }
-)

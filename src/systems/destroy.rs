@@ -11,13 +11,13 @@ use amethyst::{
     },
     renderer::{
         resources::Tint,
-        SpriteRender,
+        palette::Srgba,
     },
     core::transform::Transform,
 };
 
-use crate::utils::TanksSpriteSheet;
-use crate::tank::{Tank, Team, TankState};
+use crate::graphics::{ShapeRender, QuadMesh};
+use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::markers::*;
 use crate::level::MazeLevel;
@@ -26,7 +26,7 @@ use crate::systems::camshake::CameraShake;
 use crate::config::DestroyConfig;
 use crate::config::PerformanceConfig;
 
-// TODO_VL: Make it possible to explode things like walls
+// TODO_F: Make it possible to explode things like walls
 
 pub struct DestroySystem;
 
@@ -40,8 +40,9 @@ impl<'s> System<'s> for DestroySystem {
 
         WriteStorage<'s, Tank>,
 
-        ReadExpect<'s, TanksSpriteSheet>,
-        WriteStorage<'s, SpriteRender>,
+        ReadExpect<'s, QuadMesh>,
+        WriteStorage<'s, ShapeRender>,
+        WriteStorage<'s, DynamicColorMarker>,
         WriteStorage<'s, Tint>,
         WriteStorage<'s, Transform>,
         WriteStorage<'s, TempMarker>,
@@ -65,8 +66,9 @@ impl<'s> System<'s> for DestroySystem {
             mut bodies,
             mut colliders,
             mut tanks,
-            sprite_sheet,
-            mut sprite_renders,
+            quad_mesh,
+            mut shape_renders,
+            mut dyn_color_markers,
             mut tints,
             mut transforms,
             mut temp_markers,
@@ -112,8 +114,8 @@ impl<'s> System<'s> for DestroySystem {
         }
 
         // Explode tanks that were hit, then change their state to destroyed
-        // Position, angle, velocity, spriterender
-        let mut particles = Vec::<(na::Vector2::<f32>, f32, f32, SpriteRender)>::new();
+        // Position, angle, velocity, color
+        let mut particles = Vec::<(na::Vector2::<f32>, f32, f32, ColorKey)>::new();
 
         for (tank, body, tint) in (&mut tanks, &bodies, &mut tints).join() {
             if tank.state != TankState::Hit { continue; }
@@ -124,17 +126,18 @@ impl<'s> System<'s> for DestroySystem {
                 let mut thread_rng = thread_rng();
 
                 // Create debris particles with random SpriteRenders and velocity vectors
-                let sprite_numbers = match tank.team {
-                    Team::P1 => [&destroy_config.particle_sprite_nums[..], &destroy_config.red_particle_sprite_nums[..]].concat(),
-                    Team::P2 => [&destroy_config.particle_sprite_nums[..], &destroy_config.blue_particle_sprite_nums[..]].concat(),
-                };
                 // Use uniform distribution
-                let numbers = Uniform::new(0, sprite_numbers.len());
+                let numbers = Uniform::new(0, 5);
                 let angles = Uniform::new(0.0_f32, 360.0_f32);
                 for _ in 0..destroy_config.tank_explosion_particle_num {
-                    let sprite_render = SpriteRender {
-                        sprite_sheet: sprite_sheet.handle.clone(),
-                        sprite_number: sprite_numbers[numbers.sample(&mut thread_rng)]
+                    let color_num = numbers.sample(&mut thread_rng);
+                    let color = match color_num {
+                        0 => ColorKey::Walls,
+                        1 => ColorKey::from(tank.team),
+                        2 => ColorKey::from(tank.team),
+                        3 => ColorKey::from(tank.team),
+                        4 => ColorKey::Text,
+                        _ => unreachable!()
                     };
                     // TODO_L: Weight the angle using the direction from which the tank was hit
                     //       so that the particles fly in the opposite direction
@@ -149,7 +152,7 @@ impl<'s> System<'s> for DestroySystem {
                         destroy_config.particle_vel_bounds.1
                     );
 
-                    particles.push((position, angle, velocity, sprite_render));
+                    particles.push((position, angle, velocity, color));
                 }
             }
 
@@ -177,7 +180,7 @@ impl<'s> System<'s> for DestroySystem {
         }
 
         // Create the particles
-        for (start, angle, velocity, sprite_render) in particles {
+        for (start, angle, velocity, color_key) in particles {
             // Create the body's position
             let position = na::Isometry2::new(
                 start,
@@ -201,9 +204,15 @@ impl<'s> System<'s> for DestroySystem {
             transform.set_translation_xyz(start.x, start.y, 0.0);
             transform.set_scale(amethyst::core::math::Vector3::new(destroy_config.particle_scale, destroy_config.particle_scale, 1.0));
 
+            let shape_render = ShapeRender {
+                mesh: quad_mesh.handle.clone()
+            };
+
             // Create the entity
             let mut builder = entities.build_entity()
-                .with(sprite_render, &mut sprite_renders)
+                .with(shape_render, &mut shape_renders)
+                .with(Tint(Srgba::default()), &mut tints)
+                .with(DynamicColorMarker(color_key), &mut dyn_color_markers)
                 .with(transform, &mut transforms)
                 .with(TempMarker(None), &mut temp_markers);
 

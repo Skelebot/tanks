@@ -2,10 +2,10 @@ use nphysics2d as np;
 use ncollide2d as nc;
 use nalgebra as na;
 use amethyst::{
-    assets::AssetStorage,
     core::timing::Time,
     core::transform::Transform,
     renderer::resources::Tint,
+    renderer::palette::Srgba,
     window::ScreenDimensions,
     ecs::{
         Join, System,
@@ -14,14 +14,13 @@ use amethyst::{
     }
 };
 use crate::graphics::{ShapeRender, QuadMesh};
-use crate::tank::{Tank, Team, TankState};
+use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
 use crate::config::TankConfig;
 use crate::config::BeamerConfig;
 use crate::markers::*;
 use crate::systems::camshake::CameraShake;
-use crate::utils::color::{ColorschemeSet, Colorscheme};
 
 pub struct BeamerSystem;
 
@@ -41,8 +40,6 @@ impl<'s> System<'s> for BeamerSystem {
         WriteStorage<'s, Tint>,
         WriteStorage<'s, DynamicColorMarker>,
         ReadExpect<'s, QuadMesh>,
-        ReadExpect<'s, ColorschemeSet>,
-        Read<'s, AssetStorage<Colorscheme>>,
 
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
@@ -67,8 +64,6 @@ impl<'s> System<'s> for BeamerSystem {
             mut tints,
             mut dyn_color_markers,
             quad_mesh,
-            colorscheme_set,
-            colorschemes_assets,
 
             mut temp_markers,
             mut deadly_markers,
@@ -91,7 +86,6 @@ impl<'s> System<'s> for BeamerSystem {
             } = tank.weapon {
                 // The player is holding the shoot button and isn't destroyed 
                 if tank.is_shooting && tank.state == TankState::Alive {
-
                     // If the weapon can shoot and the weapon is not ready to shoot
                     if *heating_progress < 1.0 && overheat_timer.is_none() && shooting_timer.is_none() {
 
@@ -100,12 +94,6 @@ impl<'s> System<'s> for BeamerSystem {
                         if heating_square.is_none() {
                             // Initialize the heating square
                             let shape_render = ShapeRender { mesh: quad_mesh.handle.clone() };
-                            let tint = Tint(
-                                match tank.team {
-                                    Team::P1 => colorschemes_assets.get(&colorscheme_set.get_current()).unwrap().p1,
-                                    Team::P2 => colorschemes_assets.get(&colorscheme_set.get_current()).unwrap().p2,
-                                }
-                            );
                             // The transform will be set and updated later so it moves with the player
                             let mut square_transform = Transform::default();
                             // Make the square appear over the tank sprite and over wall sprites
@@ -120,8 +108,8 @@ impl<'s> System<'s> for BeamerSystem {
                                 .build_entity()
                                 .with(square_transform, &mut transforms)
                                 .with(shape_render, &mut shape_renders)
-                                .with(tint, &mut tints)
-                                .with(DynamicColorMarker(ColorKey::P1), &mut dyn_color_markers)
+                                .with(Tint(Srgba::default()), &mut tints)
+                                .with(DynamicColorMarker(ColorKey::from(tank.team)), &mut dyn_color_markers)
                                 .with(TempMarker(None), &mut temp_markers)
                                 .build();
                             
@@ -133,14 +121,7 @@ impl<'s> System<'s> for BeamerSystem {
                             // Shoot
 
                             // Create the beam entity
-
                             let shape_render = ShapeRender { mesh: quad_mesh.handle.clone() };
-                            let tint = Tint(
-                                match tank.team {
-                                    Team::P1 => colorschemes_assets.get(&colorscheme_set.get_current()).unwrap().p1,
-                                    Team::P2 => colorschemes_assets.get(&colorscheme_set.get_current()).unwrap().p2,
-                                }
-                            );
 
                             // Calculate the beam length so that it's equal or more than the diagonal of our screen;
                             // we want the players to think the beam is infinite, so the beam's end can be just off-screen
@@ -168,14 +149,12 @@ impl<'s> System<'s> for BeamerSystem {
                             let sensor = np::object::ColliderDesc::new(shape).sensor(true).build(np::object::BodyPartHandle(body_handle, 0));
                             let sensor_handle = physics.add_collider(sensor);
 
-                            // TODO_VH: Actually match tank's team to DynamicColorMarkers instead of P1
-                            
                             let beam_entity = entities
                                 .build_entity()
                                 .with(beam_transform, &mut transforms)
                                 .with(shape_render, &mut shape_renders)
-                                .with(tint, &mut tints)
-                                .with(DynamicColorMarker(ColorKey::P1), &mut dyn_color_markers)
+                                .with(Tint(Srgba::default()), &mut tints)
+                                .with(DynamicColorMarker(ColorKey::from(tank.team)), &mut dyn_color_markers)
                                 .with(TempMarker(None), &mut temp_markers)
                                 .with(DeadlyMarker, &mut deadly_markers)
                                 .with(physics::Collider::new(sensor_handle), &mut colliders)
