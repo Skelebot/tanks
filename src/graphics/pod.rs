@@ -128,7 +128,7 @@ impl SpriteArgs {
                     let (r, g, b, a) = t.0.into_components();
                     [r, g, b, a].into()
                 }),
-                tint_box: tint_box.map_or([0.0; 4].into(), 
+                tint_box: tint_box.map_or([-0.5, -0.5, 1.0, 1.0].into(), 
                     |t_box| vec4::from(t_box.0)
                 ),
             },

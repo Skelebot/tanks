@@ -8,7 +8,6 @@ use amethyst::{
     core::Transform,
     core::math as core_na,
     window::ScreenDimensions,
-    renderer::palette::Srgba,
     renderer::resources::Tint,
 };
 
@@ -212,7 +211,7 @@ impl MazeLevel {
             entities
                 .build_entity()
                 .with(shape_render, &mut shape_renders)
-                .with(Tint(Srgba::default()), &mut tints)
+                .with(Tint(Default::default()), &mut tints)
                 .with(DynamicColorMarker(ColorKey::Walls), &mut dyn_color_markers)
                 .with(wall_transform, &mut transforms)
                 .with(TempMarker(None), &mut temp_markers)

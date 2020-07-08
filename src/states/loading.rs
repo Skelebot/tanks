@@ -14,8 +14,6 @@ use amethyst::{
         rendy::core::types::vertex::Position,
 
         resources::Tint,
-        palette::Srgba,
-
         Camera, ImageFormat, SpriteSheet, SpriteSheetFormat, Texture
     },
     window::ScreenDimensions,
@@ -186,7 +184,7 @@ fn init_background(world: &mut World, dimensions: &ScreenDimensions) {
     world.create_entity()
         .with(shape_render)
         .with(transform)
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::Background))
         .build();
 }

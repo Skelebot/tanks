@@ -4,14 +4,15 @@ use nalgebra as na;
 use amethyst::{
     core::timing::Time,
     core::transform::Transform,
-    renderer::SpriteRender,
+    core::math,
+    renderer::resources::Tint,
     ecs::{
         Join, System,
         Read, WriteStorage, WriteExpect, ReadExpect,
         Entities, Entity
     }
 };
-use crate::utils::TanksSpriteSheet;
+use crate::graphics::{CircleMesh, ShapeRender};
 use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
@@ -34,14 +35,17 @@ impl<'s> System<'s> for CannonSystem {
         Entities<'s>,
 
         WriteStorage<'s, Transform>,
-        ReadExpect<'s, TanksSpriteSheet>,
-        WriteStorage<'s, SpriteRender>,
+        WriteStorage<'s, Tint>,
+        WriteStorage<'s, ShapeRender>,
+        WriteStorage<'s, DynamicColorMarker>,
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
 
         ReadExpect<'s,  TankConfig>,
         ReadExpect<'s,  CannonConfig>,
         ReadExpect<'s,  PerformanceConfig>,
+        
+        ReadExpect<'s, CircleMesh>,
     );
 
     fn run(
@@ -54,16 +58,19 @@ impl<'s> System<'s> for CannonSystem {
             time,
             entities,
             mut transforms,
-            sprite_sheet,
-            mut sprite_renders,
+            mut tints,
+            mut shape_renders,
+            mut dyn_color_markers,
             mut temp_markers,
             mut deadly_markers,
             tank_config,
             cannon_config,
             performance_config,
+            circle_mesh,
         ): Self::SystemData,
     ) {
         // Entities and Bodies to be added to them because we can't borrow bodies twice in the same scope
+        // TODO_O: We can't add more than 4 bullets per frame, change this to an array
         let mut bodies_to_add: Vec<(Entity, physics::Body)> = Vec::new();
         for (tank, body) in (&mut tanks, &bodies).join() {
             if let Weapon::Cannon {
@@ -126,16 +133,22 @@ impl<'s> System<'s> for CannonSystem {
                             .build(np::object::BodyPartHandle(body_handle, 0));
                         let collider_handle = physics.add_collider(collider);
 
-                        let sprite_render = SpriteRender {
-                            sprite_number: cannon_config.bullet_sprite_num,
-                            sprite_sheet: sprite_sheet.handle.clone(),
+                        let shape_render = ShapeRender {
+                            mesh: circle_mesh.handle.clone(),
                         };
                         let mut transform = Transform::default();
+                        transform.set_scale(math::Vector3::new(
+                            cannon_config.bullet_radius, cannon_config.bullet_radius, 1.0
+                        ));
+                        // TODO: Is this actually doing anything
                         transform.set_translation_x(-200.0);
                         let ent = entities
                             .build_entity()
                             .with(transform, &mut transforms)
-                            .with(sprite_render, &mut sprite_renders)
+                            .with(shape_render, &mut shape_renders)
+                            .with(Tint(Default::default()), &mut tints)
+                            // Bullets are neutral, so we can set them to be the same color as walls or text
+                            .with(DynamicColorMarker(ColorKey::Text), &mut dyn_color_markers)
                             .with(physics::Collider::new(collider_handle), &mut colliders)
                             // We would do that but we already borrowed bodies, so we have to build the entity now and add the body later
                             //.with(physics::Body{handle: body_handle}, &mut bodies)

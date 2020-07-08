@@ -5,7 +5,6 @@ use amethyst::{
     core::timing::Time,
     core::transform::Transform,
     renderer::resources::Tint,
-    renderer::palette::Srgba,
     window::ScreenDimensions,
     ecs::{
         Join, System,
@@ -108,7 +107,7 @@ impl<'s> System<'s> for BeamerSystem {
                                 .build_entity()
                                 .with(square_transform, &mut transforms)
                                 .with(shape_render, &mut shape_renders)
-                                .with(Tint(Srgba::default()), &mut tints)
+                                .with(Tint(Default::default()), &mut tints)
                                 .with(DynamicColorMarker(ColorKey::from(tank.team)), &mut dyn_color_markers)
                                 .with(TempMarker(None), &mut temp_markers)
                                 .build();
@@ -153,7 +152,7 @@ impl<'s> System<'s> for BeamerSystem {
                                 .build_entity()
                                 .with(beam_transform, &mut transforms)
                                 .with(shape_render, &mut shape_renders)
-                                .with(Tint(Srgba::default()), &mut tints)
+                                .with(Tint(Default::default()), &mut tints)
                                 .with(DynamicColorMarker(ColorKey::from(tank.team)), &mut dyn_color_markers)
                                 .with(TempMarker(None), &mut temp_markers)
                                 .with(DeadlyMarker, &mut deadly_markers)

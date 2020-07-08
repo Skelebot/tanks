@@ -11,7 +11,6 @@ use amethyst::{
     },
     renderer::{
         resources::Tint,
-        palette::Srgba,
     },
     core::transform::Transform,
 };
@@ -211,7 +210,7 @@ impl<'s> System<'s> for DestroySystem {
             // Create the entity
             let mut builder = entities.build_entity()
                 .with(shape_render, &mut shape_renders)
-                .with(Tint(Srgba::default()), &mut tints)
+                .with(Tint(Default::default()), &mut tints)
                 .with(DynamicColorMarker(color_key), &mut dyn_color_markers)
                 .with(transform, &mut transforms)
                 .with(TempMarker(None), &mut temp_markers);

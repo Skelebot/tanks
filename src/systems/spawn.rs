@@ -8,13 +8,14 @@ use rand::distributions::{Distribution, Uniform};
 use amethyst::{
     core::Transform,
     renderer::SpriteRender,
+    renderer::resources::Tint,
     window::ScreenDimensions,
     core::timing::Time,
 };
 use amethyst::ecs::prelude::*;
 use crate::level::MazeLevel;
 use crate::tank::Tank;
-use crate::markers::TempMarker;
+use crate::markers::*;
 use crate::utils::SpawnsSpriteSheet;
 use crate::physics;
 use crate::weapons::Weapon;
@@ -61,6 +62,8 @@ impl<'s> System<'s> for SpawnSystem {
         ReadExpect<'s, SpawnsSpriteSheet>,
         
         WriteStorage<'s, SpriteRender>,
+        WriteStorage<'s, Tint>,
+        WriteStorage<'s, DynamicColorMarker>,
         WriteStorage<'s, Transform>,
         WriteExpect<'s, physics::Physics>,
         WriteStorage<'s, physics::Body>,
@@ -83,6 +86,8 @@ impl<'s> System<'s> for SpawnSystem {
             entities,
             sprite_sheet,
             mut sprite_renders,
+            mut tints,
+            mut dyn_color_markers,
             mut transforms,
             mut physics,
             mut bodies,
@@ -180,6 +185,8 @@ impl<'s> System<'s> for SpawnSystem {
                 .build_entity()
                 .with(spawn, &mut spawns)
                 .with(sprite_render, &mut sprite_renders)
+                .with(Tint(Default::default()), &mut tints)
+                .with(DynamicColorMarker(ColorKey::Text), &mut dyn_color_markers)
                 .with(transform, &mut transforms)
                 .with(body, &mut bodies)
                 .with(collider, &mut colliders)

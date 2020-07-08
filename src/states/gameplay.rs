@@ -7,7 +7,6 @@ use amethyst::{
     input::{is_close_requested, is_key_down, VirtualKeyCode, get_key, ElementState},
     prelude::*,
     renderer::{
-        palette::Srgba,
         resources::Tint,
 
         SpriteRender
@@ -178,7 +177,7 @@ fn init_scoreboard(world: &mut World){
             default_color,
             50.
         ))
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P1))
         .build();
     let p1_score = world
@@ -190,7 +189,7 @@ fn init_scoreboard(world: &mut World){
             default_color,
             50.
         ))
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::Text))
         .build();
 
@@ -203,7 +202,7 @@ fn init_scoreboard(world: &mut World){
             default_color,
             50.
         ))
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P2))
         .build();
     let p2_score = world
@@ -215,7 +214,7 @@ fn init_scoreboard(world: &mut World){
             default_color,
             50.
         ))
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::Text))
         .build();
     
@@ -333,7 +332,7 @@ fn init_players(world: &mut World) {
     world.create_entity()
         .with(Tank::new(Team::P1, Weapon::default()))
         .with(sprites[0].clone())
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P1))
         .with(TintBox([x, y, width, height]))
         .with(p1_body)
@@ -345,7 +344,7 @@ fn init_players(world: &mut World) {
     world.create_entity()
         .with(Tank::new(Team::P2, Weapon::default()))
         .with(sprites[1].clone())
-        .with(Tint(Srgba::default()))
+        .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P2))
         .with(TintBox([x, y, width, height]))
         .with(p2_body)
