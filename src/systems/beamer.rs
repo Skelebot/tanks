@@ -4,7 +4,7 @@ use nalgebra as na;
 use amethyst::{
     core::timing::Time,
     core::transform::Transform,
-    renderer::SpriteRender,
+    renderer::resources::Tint,
     window::ScreenDimensions,
     ecs::{
         Join, System,
@@ -12,8 +12,8 @@ use amethyst::{
         Entities, Entity
     }
 };
-use crate::utils::TanksSpriteSheet;
-use crate::tank::{Tank, Team, TankState};
+use crate::graphics::{ShapeRender, QuadMesh};
+use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::weapons::Weapon;
 use crate::config::TankConfig;
@@ -35,8 +35,11 @@ impl<'s> System<'s> for BeamerSystem {
         Entities<'s>,
 
         WriteStorage<'s, Transform>,
-        ReadExpect<'s, TanksSpriteSheet>,
-        WriteStorage<'s, SpriteRender>,
+        WriteStorage<'s, ShapeRender>,
+        WriteStorage<'s, Tint>,
+        WriteStorage<'s, DynamicColorMarker>,
+        ReadExpect<'s, QuadMesh>,
+
         WriteStorage<'s, TempMarker>,
         WriteStorage<'s, DeadlyMarker>,
 
@@ -56,8 +59,11 @@ impl<'s> System<'s> for BeamerSystem {
             time,
             entities,
             mut transforms,
-            sprite_sheet,
-            mut sprite_renders,
+            mut shape_renders,
+            mut tints,
+            mut dyn_color_markers,
+            quad_mesh,
+
             mut temp_markers,
             mut deadly_markers,
             tank_config,
@@ -79,39 +85,30 @@ impl<'s> System<'s> for BeamerSystem {
             } = tank.weapon {
                 // The player is holding the shoot button and isn't destroyed 
                 if tank.is_shooting && tank.state == TankState::Alive {
-
                     // If the weapon can shoot and the weapon is not ready to shoot
                     if *heating_progress < 1.0 && overheat_timer.is_none() && shooting_timer.is_none() {
-
-                        // Lock the tank in place
-                        // TODO: Lock the velocity so the tank can slow down instead
-                        // FIXME: Should the tank be able to rotate? Do not zero angular velocity
-                        // Disabled for testing
-                        // body.set_velocity(np::algebra::Velocity2::zero());
 
                         *heating_progress += time.delta_seconds() / beamer_config.heat_time;
 
                         if heating_square.is_none() {
                             // Initialize the heating square
-                            let sprite_render = SpriteRender {
-                                sprite_sheet: sprite_sheet.handle.clone(),
-                                // TODO: Use a config
-                                sprite_number: match tank.team {
-                                    Team::Red => 4,
-                                    Team::Blue => 5,
-                                }
-                            };
+                            let shape_render = ShapeRender { mesh: quad_mesh.handle.clone() };
                             // The transform will be set and updated later so it moves with the player
                             let mut square_transform = Transform::default();
                             // Make the square appear over the tank sprite and over wall sprites
                             square_transform.set_translation_z(0.10);
                             // The heating square is a purely cosmetic entity
-                            // TODO: Make the heating square also a sensor so the tanks can run into each other
+                            // IDEA: Make the heating square also a sensor so the tanks can run into each other
                             //       while heating their beamers without actually shooting them to kill the other player
+                            // REVIEW: We don't really want to do this. It introduces another collider that slows down the simulation,
+                            //         AND we would have to introduce collision groups because it would constantly collide with
+                            //         it's own tank and walls. It would be a neat detail, but makes a lot of things more wonky and weird.
                             let square_entity = entities
                                 .build_entity()
                                 .with(square_transform, &mut transforms)
-                                .with(sprite_render, &mut sprite_renders)
+                                .with(shape_render, &mut shape_renders)
+                                .with(Tint(Default::default()), &mut tints)
+                                .with(DynamicColorMarker(ColorKey::from(tank.team)), &mut dyn_color_markers)
                                 .with(TempMarker(None), &mut temp_markers)
                                 .build();
                             
@@ -123,15 +120,7 @@ impl<'s> System<'s> for BeamerSystem {
                             // Shoot
 
                             // Create the beam entity
-
-                            let sprite_render = SpriteRender {
-                                sprite_sheet: sprite_sheet.handle.clone(),
-                                // TODO: Use a config
-                                sprite_number: match tank.team {
-                                    Team::Red => 4,
-                                    Team::Blue => 5,
-                                }
-                            };
+                            let shape_render = ShapeRender { mesh: quad_mesh.handle.clone() };
 
                             // Calculate the beam length so that it's equal or more than the diagonal of our screen;
                             // we want the players to think the beam is infinite, so the beam's end can be just off-screen
@@ -150,8 +139,7 @@ impl<'s> System<'s> for BeamerSystem {
                             beam_transform.set_translation_z(0.2);
                             // We don't want to see the beam until it's body position gets updated, so we set the
                             // initial position to something safely off-screen
-                            // TODO: Find a method to hide and show sprites
-                            let tmp_pos = na::Isometry2::translation(-100.0, 0.0);
+                            let tmp_pos = na::Isometry2::translation(-1000.0, 0.0);
 
                             // Create a sensor for the beam for detecting physics bodies in the beam
                             let shape = nc::shape::ShapeHandle::new(nc::shape::Cuboid::new(na::Vector2::new(scale.x/2.0, scale.y/2.0)));
@@ -159,11 +147,13 @@ impl<'s> System<'s> for BeamerSystem {
                             let body_handle = physics.add_rigid_body(body);
                             let sensor = np::object::ColliderDesc::new(shape).sensor(true).build(np::object::BodyPartHandle(body_handle, 0));
                             let sensor_handle = physics.add_collider(sensor);
-                            
+
                             let beam_entity = entities
                                 .build_entity()
                                 .with(beam_transform, &mut transforms)
-                                .with(sprite_render, &mut sprite_renders)
+                                .with(shape_render, &mut shape_renders)
+                                .with(Tint(Default::default()), &mut tints)
+                                .with(DynamicColorMarker(ColorKey::from(tank.team)), &mut dyn_color_markers)
                                 .with(TempMarker(None), &mut temp_markers)
                                 .with(DeadlyMarker, &mut deadly_markers)
                                 .with(physics::Collider::new(sensor_handle), &mut colliders)
@@ -192,7 +182,7 @@ impl<'s> System<'s> for BeamerSystem {
                 let body = physics.get_rigid_body_mut(body.handle).unwrap();
                 if let Some(square) = heating_square {
                     // Update the heating square's transform
-                    // TODO: Clean up
+                    // TODO_VL: Clean up
                     let rotation = na::UnitQuaternion::from_axis_angle(&na::Vector::z_axis(), body.position().rotation.angle());
                     // TODO: Removing this is impossible until nalgebra versions from Amethyst and NPhysics match
                     let amethyst_rotation = amethyst::core::math::UnitQuaternion::from_axis_angle(&amethyst::core::math::Vector::z_axis(), body.position().rotation.angle());
@@ -233,11 +223,6 @@ impl<'s> System<'s> for BeamerSystem {
                 }
                 
                 if let Some(timer) = shooting_timer {
-                    // Lock the tank in place
-                    // TODO: Lock the velocity so the tank can slow down instead
-                    // FIXME: Should the tank be able to rotate? Do not zero angular velocity
-                    // Disabled for testing
-                    // body.set_velocity(np::algebra::Velocity2::zero());
 
                     // Decrease the shooting timer
                     *timer -= time.delta_seconds();
@@ -288,6 +273,7 @@ fn test_mut_enum() {
     let mut inst = A::Variant { sth: 0.2 };
 
     match inst {
+        // `ref mut` is the key here
         A::Variant { ref mut sth } => *sth += 1.0,
         _ => (),
     }

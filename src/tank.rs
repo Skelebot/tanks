@@ -4,8 +4,9 @@ use crate::weapons::Weapon;
 /// An Enum representing possible teams for tanks
 #[derive(PartialEq, Eq, Debug, Copy, Clone)]
 pub enum Team {
-    Red,
-    Blue
+    P1,
+    P2,
+    // TODO_H: Add support for 4 tanks
 }
 
 #[derive(PartialEq, Eq, Debug)]

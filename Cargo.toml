@@ -6,14 +6,18 @@ edition = "2018"
 
 [dependencies]
 log = { version = "0.4.8", features = ["serde"] }
+
 serde = "1.0.105"
 rand = "0.7.3"
+
 nphysics2d = "0.14.0"
 ncollide2d = "0.22.0"
 nalgebra = "0.20.0"
 
 derivative = "2.1.0"
 failure = "0.1.7"
+
+glsl-layout = "0.3.2"
 
 [dependencies.amethyst]
 git = "https://github.com/amethyst/amethyst.git"

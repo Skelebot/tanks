@@ -38,7 +38,7 @@ List((
       width: 1,
       height: 1,
     ),
-    // Blue beam pixel
+    // Blue beam pixel | 5
     (
       x: 63,
       y: 24,
@@ -69,7 +69,7 @@ List((
       y: 28,
       width: 1, height: 1,
     ),
-    // Dark red pixel
+    // Dark red pixel | 10
     (
       x: 1,
       y: 28,
@@ -86,6 +86,13 @@ List((
       x: 1,
       y: 29,
       width: 1, height: 1,
+    ),
+    // A rocket
+    (
+      x: 58,
+      y: 9,
+      width: 6,
+      height: 9,
     )
   ]
 ))

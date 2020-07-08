@@ -1,0 +1,9 @@
+(
+    background: 0x000000,
+    text:       0xffffff,
+    walls:      0xffffff,
+    p1:         0xff0000,
+    p2:         0x0000ff,
+    p3:         0x00ff00,
+    p4:         0x00ffff
+)

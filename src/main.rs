@@ -17,7 +17,6 @@ use amethyst::{
     window::{DisplayConfig, EventLoop},
 };
 use std::time::Duration;
-
 mod states;
 mod level;
 mod utils;
@@ -31,19 +30,21 @@ mod weapons;
 mod graphics;
 
 fn main() -> amethyst::Result<()> {
-    amethyst::start_logger(Default::default());
+    amethyst::start_logger(amethyst::LoggerConfig {
+        stdout: amethyst::StdoutLog::Colored,
+        level_filter: amethyst::LogLevelFilter::Debug,
+        log_file: None,
+        allow_env_override: false,
+        log_gfx_backend_level: None,
+        log_gfx_rendy_level: None,
+        module_levels: vec![],
+    });
 
     let app_root = application_root_dir()?;
     let resources = app_root.join("res");
 
-    let config = resources.join("config");
-    let display_config = DisplayConfig::load(&config.join("display.ron"))?;
-    let tank_config = config::TankConfig::load(&config.join("tank.ron")).unwrap();
-    let maze_config = config::MazeConfig::load(&config.join("maze.ron")).unwrap();
-    let beamer_config = config::BeamerConfig::load(&config.join("beamer.ron")).unwrap();
-    let cannon_config = config::CannonConfig::load(&config.join("cannon.ron")).unwrap();
-    let spawn_config = config::SpawnConfig::load(&config.join("spawn.ron")).unwrap();
-    let destroy_config = config::DestroyConfig::load(&config.join("destroy.ron")).unwrap();
+    let config      = resources.join("config");
+    let display_config      = DisplayConfig::load(&config.join( "display.ron"))?;
 
     let input_bundle = InputBundle::<StringBindings>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
@@ -51,20 +52,10 @@ fn main() -> amethyst::Result<()> {
     let event_loop = EventLoop::new();
 
     let game_data = GameDataBuilder::default()
+        .with(amethyst::assets::Processor::<crate::utils::color::Colorscheme>::new(), "colorscheme_processor", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(UiBundle::<StringBindings>::new())?
-        .with(systems::TankSystem, "tank_system", &["input_system"])
-        .with(systems::LevelSystem, "level_system", &["tank_system"])
-        .with(systems::SpawnSystem::default(), "spawn_system", &["level_system"])
-
-        .with(systems::BeamerSystem, "beamer_system", &["spawn_system"])
-        .with(systems::CannonSystem, "cannon_system", &["spawn_system"])
-
-        .with(systems::DestroySystem, "destroy_system", &["beamer_system", "cannon_system"])
-        .with(systems::CameraShakeSystem, "shake_system", &["destroy_system"])
-        .with(physics::StepperSystem, "stepper_system", &["destroy_system"])
-        .with(physics::PTTSystem, "physics_to_transform_system", &["stepper_system"])
         .with_bundle(
             RenderingBundle::<DefaultBackend>::new(display_config, &event_loop)
                 .with_plugin(
@@ -73,19 +64,14 @@ fn main() -> amethyst::Result<()> {
                         float32: [0.0145, 0.0165, 0.0204, 1.0]   //dark background
                     }))
                 .with_plugin(graphics::RenderFlat2D::default())
+                .with_plugin(graphics::RenderShapes::default())
                 .with_plugin(RenderUi::default())
         )?;
 
-    let game = Application::build(resources, states::GameplayState)?
-        .with_resource(tank_config)
-        .with_resource(maze_config)
-        .with_resource(beamer_config)
-        .with_resource(cannon_config)
-        .with_resource(spawn_config)
-        .with_resource(destroy_config)
+    let game = Application::build(resources, states::LoadingState::default())?
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
-            60
+            80
         )
         .build(game_data)?;
     game.run_winit_loop(event_loop);

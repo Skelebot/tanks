@@ -2,7 +2,7 @@
     // Shot cooldown time (seconds)
     shoot_time: 0.5,
     // How long does a bullet live before it gets removed (seconds)
-    bullet_time: 6.0,
+    bullet_time: 5.0,
     // The distance between the tank's front and the spawned bullet
     // Protects against situations when a tank gets hit by the bullet it shot in the same frame
     self_safety_margin: 4.2,

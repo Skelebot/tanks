@@ -1,9 +1,13 @@
 (
-    heat_time: 0.6,
+    heat_time: 1.0,
     heating_max_scale: 23.0,
     beam_width: 20.0,
-    shoot_time: 1.2,
+    shoot_time: 1.5,
     overheat_time: 2.3,
     self_safety_margin: 5.0,
-    shake_magnitude: 4.0
+    shake_magnitude: 4.0,
+    lock_rotation_when_heating: false,
+    lock_movement_when_heating: true,
+    lock_rotation_when_shooting: true,
+    lock_movement_when_shooting: true
 )

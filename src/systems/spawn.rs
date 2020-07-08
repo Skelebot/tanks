@@ -8,13 +8,14 @@ use rand::distributions::{Distribution, Uniform};
 use amethyst::{
     core::Transform,
     renderer::SpriteRender,
+    renderer::resources::Tint,
     window::ScreenDimensions,
     core::timing::Time,
 };
 use amethyst::ecs::prelude::*;
 use crate::level::MazeLevel;
 use crate::tank::Tank;
-use crate::markers::TempMarker;
+use crate::markers::*;
 use crate::utils::SpawnsSpriteSheet;
 use crate::physics;
 use crate::weapons::Weapon;
@@ -43,6 +44,7 @@ impl Default for SpawnSystem {
     fn default() -> Self {
         Self {
             spawn_timer: 0.0,
+            // TODO_H: Fix spawns not being continously spawned (actually subtract this)
             spawns_alive: 0,
             // We want to initialize it the first time someone calls run()
             // because we need the maze_config etc to actually initialize it
@@ -60,6 +62,8 @@ impl<'s> System<'s> for SpawnSystem {
         ReadExpect<'s, SpawnsSpriteSheet>,
         
         WriteStorage<'s, SpriteRender>,
+        WriteStorage<'s, Tint>,
+        WriteStorage<'s, DynamicColorMarker>,
         WriteStorage<'s, Transform>,
         WriteExpect<'s, physics::Physics>,
         WriteStorage<'s, physics::Body>,
@@ -82,6 +86,8 @@ impl<'s> System<'s> for SpawnSystem {
             entities,
             sprite_sheet,
             mut sprite_renders,
+            mut tints,
+            mut dyn_color_markers,
             mut transforms,
             mut physics,
             mut bodies,
@@ -95,12 +101,11 @@ impl<'s> System<'s> for SpawnSystem {
             time
         ): Self::SystemData,
     ) {
-
         // If the level is about to be reset, zero the number of spawns
         // and keep the spawn timer frozen. This won't spawn any new spawns
         // and won't remove existing ones. When the LevelSystem resets the level,
         // all existing spawns will be automatically removed (TempMarkers)
-        if let Some(_) = level.reset_timer {
+        if level.reset_timer.is_some() {
             self.spawn_timer = spawn_config.spawn_time;
             self.spawns_alive = 0;
         }
@@ -180,6 +185,8 @@ impl<'s> System<'s> for SpawnSystem {
                 .build_entity()
                 .with(spawn, &mut spawns)
                 .with(sprite_render, &mut sprite_renders)
+                .with(Tint(Default::default()), &mut tints)
+                .with(DynamicColorMarker(ColorKey::Text), &mut dyn_color_markers)
                 .with(transform, &mut transforms)
                 .with(body, &mut bodies)
                 .with(collider, &mut colliders)
@@ -202,7 +209,7 @@ impl<'s> System<'s> for SpawnSystem {
         // of a spawn.
         // We choose to use sensor colliders with static rigidbodies for more uniform code.
         physics.maintain();
-        // TODO: Add a performance setting
+        // TODO_VL: Add a performance setting
         for (spawn, collider, entity) in (&spawns, &colliders, &entities).join() {
             if let Some(interactions) =
                 physics.geom_world.interactions_with(&physics.colliders, collider.handle, false)
@@ -217,6 +224,7 @@ impl<'s> System<'s> for SpawnSystem {
                             // Change the tank's weapon or something else depending on the spawn's type
                             use std::mem::discriminant; // Returns a unique identifier for an enum variant
                                                         // which lets us check if two values are the same variant
+                            #[allow(clippy::single_match)]
                             match &spawn.s_type {
                                 SpawnType::Weapon(spawn_weapon) => {
                                     // Pick up only if the tank doesn't already have that weapon
@@ -233,6 +241,7 @@ impl<'s> System<'s> for SpawnSystem {
                 }
             }
         }
+
         // Remove the spawns
         for entity in spawns_to_remove {
             // Remove bodies and colliders belonging to entities with a TempMarker Component
@@ -262,8 +271,9 @@ fn random_spawn<R: Rng + ?Sized, D: Distribution<u32>>(rng: &mut R, dist: D) -> 
         _ => {
             let num = dist.sample(rng);
             match num {
-                0..=6 => SpawnType::Weapon(Weapon::Cannon { shooting_timer: None }),
-                7..=10 => SpawnType::Weapon(Weapon::Beamer { shooting_timer: None, beam: None, heating_progress: 0.0, heating_square: None, overheat_timer: None }),
+                0..=7 => SpawnType::Weapon(Weapon::Cannon { shooting_timer: None }),
+                // 3..=8 => SpawnType::Weapon(Weapon::Rocket { shooting_timer: None }),
+                8..=10 => SpawnType::Weapon(Weapon::Beamer { shooting_timer: None, beam: None, heating_progress: 0.0, heating_square: None, overheat_timer: None }),
                 _ => unreachable!(),
             }
         }
@@ -279,6 +289,7 @@ fn random_spawn<R: Rng + ?Sized, D: Distribution<u32>>(rng: &mut R, dist: D) -> 
             match &weapon {
                 Weapon::Cannon { .. } => 0,
                 Weapon::Beamer { .. } => 1,
+                Weapon::Rocket { .. } => 2,
                 _ => 3,
             }
         }
@@ -290,7 +301,7 @@ fn random_spawn<R: Rng + ?Sized, D: Distribution<u32>>(rng: &mut R, dist: D) -> 
 
 #[test]
 /// A method to find out if tho enum values are the same variant
-fn test_eq_enum() {
+fn test_eq_enum_variant() {
     #[derive(Debug, PartialEq)]
     enum T {
         A{x: u32, y: u32},
