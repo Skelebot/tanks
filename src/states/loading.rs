@@ -1,3 +1,4 @@
+use nalgebra as na;
 use amethyst::{
     prelude::*,
     ui::{UiFinder, UiCreator},
@@ -5,7 +6,6 @@ use amethyst::{
 use amethyst::{
     assets::{AssetStorage, Handle, Loader, AssetLoaderSystemData, ProgressCounter, Completion},
     core::transform::Transform,
-    core::math as na,
     renderer::{
         shape::Shape,
 

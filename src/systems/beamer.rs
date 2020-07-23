@@ -126,7 +126,7 @@ impl<'s> System<'s> for BeamerSystem {
                             // we want the players to think the beam is infinite, so the beam's end can be just off-screen
                             let beam_length = screen_dimensions.diagonal().norm();
                             // Because the sprite is just one pixel, calculate the scale needed to make it the correct size
-                            let scale = amethyst::core::math::Vector3::new(
+                            let scale = na::Vector3::new(
                                 beamer_config.beam_width,
                                 beam_length,
                                 1.0
@@ -184,18 +184,16 @@ impl<'s> System<'s> for BeamerSystem {
                     // Update the heating square's transform
                     // TODO_VL: Clean up
                     let rotation = na::UnitQuaternion::from_axis_angle(&na::Vector::z_axis(), body.position().rotation.angle());
-                    // TODO: Removing this is impossible until nalgebra versions from Amethyst and NPhysics match
-                    let amethyst_rotation = amethyst::core::math::UnitQuaternion::from_axis_angle(&amethyst::core::math::Vector::z_axis(), body.position().rotation.angle());
-                    let trans = body.position().translation.vector.push(0.1)
+                    let translation = body.position().translation.vector.push(0.1)
                         + rotation * na::Vector3::<f32>::new(0.0, tank_config.size_y as f32 / 2.0, 0.1);
 
                     let scale = *heating_progress * beamer_config.heating_max_scale;
 
                     transforms.get_mut(*square).unwrap()
-                        .set_translation_xyz(trans.x, trans.y, trans.z)
-                        .set_rotation(amethyst_rotation)
+                        .set_translation(translation)
+                        .set_rotation(rotation)
                         .prepend_rotation_z_axis(45.0_f32.to_radians())
-                        .set_scale(amethyst::core::math::Vector3::new(scale, scale, 1.0));
+                        .set_scale(na::Vector3::new(scale, scale, 1.0));
 
                     // The beam only exists if the heating square exists
                     // and we can put the check here so we can use the rotations
@@ -208,13 +206,13 @@ impl<'s> System<'s> for BeamerSystem {
                         // body handle for the beam yet
                         if let Some(beam_pbody) = bodies.get(*beam) {
                             let rotation = na::UnitComplex::from_angle(body.position().rotation.angle());
-                            let trans = body.position().translation.vector
+                            let translation = body.position().translation.vector
                                 + rotation * na::Vector2::new(0.0, (tank_config.size_y as f32 / 2.0) + (transforms.get(*beam).unwrap().scale().y / 2.0) + beamer_config.self_safety_margin);
                             let angle = body.position().rotation.angle();
                             physics.get_rigid_body_mut(beam_pbody.handle).unwrap()
                                 .set_position(
                                     na::Isometry2::new(
-                                        trans.xy(),
+                                        translation.xy(),
                                         angle
                                     )
                                 );

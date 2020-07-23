@@ -1,5 +1,5 @@
 use rand::{thread_rng, Rng};
-
+use nalgebra as na;
 use amethyst::{
     ecs::{
         System, Join,
@@ -7,7 +7,6 @@ use amethyst::{
     },
     core::Transform,
     renderer::Camera,
-    core::math as na,
     core::timing::Time,
 };
 

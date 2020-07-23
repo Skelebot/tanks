@@ -4,7 +4,6 @@ use nalgebra as na;
 use amethyst::{
     core::timing::Time,
     core::transform::Transform,
-    core::math,
     renderer::resources::Tint,
     ecs::{
         Join, System,
@@ -137,7 +136,7 @@ impl<'s> System<'s> for CannonSystem {
                             mesh: circle_mesh.handle.clone(),
                         };
                         let mut transform = Transform::default();
-                        transform.set_scale(math::Vector3::new(
+                        transform.set_scale(na::Vector3::new(
                             cannon_config.bullet_radius, cannon_config.bullet_radius, 1.0
                         ));
                         // TODO: Is this actually doing anything

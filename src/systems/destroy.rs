@@ -201,7 +201,7 @@ impl<'s> System<'s> for DestroySystem {
             // Create the transform
             let mut transform= Transform::default();
             transform.set_translation_xyz(start.x, start.y, 0.0);
-            transform.set_scale(amethyst::core::math::Vector3::new(destroy_config.particle_scale, destroy_config.particle_scale, 1.0));
+            transform.set_scale(na::Vector3::new(destroy_config.particle_scale, destroy_config.particle_scale, 1.0));
 
             let shape_render = ShapeRender {
                 mesh: quad_mesh.handle.clone()

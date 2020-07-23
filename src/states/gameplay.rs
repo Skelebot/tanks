@@ -175,7 +175,7 @@ fn init_scoreboard(world: &mut World){
             font.clone(),
             "P1: ".to_string(),
             default_color,
-            50.
+            50.,
         ))
         .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P1))
@@ -187,7 +187,7 @@ fn init_scoreboard(world: &mut World){
             font.clone(),
             "0".to_string(),
             default_color,
-            50.
+            50.,
         ))
         .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::Text))
@@ -200,7 +200,7 @@ fn init_scoreboard(world: &mut World){
             font.clone(),
             "P2: ".to_string(),
             default_color,
-            50.
+            50.,
         ))
         .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P2))
@@ -212,7 +212,7 @@ fn init_scoreboard(world: &mut World){
             font.clone(),
             "0".to_string(),
             default_color,
-            50.
+            50.,
         ))
         .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::Text))
@@ -245,35 +245,15 @@ fn init_players(world: &mut World) {
     // Set tanks' transforms to level's starting positions
     // Red tank's Transform
     let mut p1_transform = Transform::default();
-    p1_transform.set_translation(
-        amethyst::core::math::Vector3::new(
-            starting_positions[0].x,
-            starting_positions[0].y,
-            0.0
-        )
-    );
-    // Amethyst's Transform is in 3D, to create a 2D RigidBody we have to determine it's 2D translation + rotation
-    let p1_position: na::Isometry2<f32> = 
-        na::Isometry2::new(
-            na::Vector2::new(p1_transform.translation().x, p1_transform.translation().y),
-            p1_transform.rotation().angle(),
-        );
+    p1_transform.set_translation(starting_positions[0].translation.vector.push(0.0));
+    p1_transform.set_rotation_z_axis(starting_positions[0].rotation.angle());
+    let p1_position = starting_positions[0];
 
     // Blue tank's Transform
     let mut p2_transform = Transform::default();
-    p2_transform.set_translation(
-        amethyst::core::math::Vector3::new(
-            starting_positions[1].x,
-            starting_positions[1].y,
-            0.0
-        )
-    );
-    // Amethyst's Transform is in 3D, to create a 2D RigidBody we have to determine it's 2D translation + rotation
-    let p2_position: na::Isometry2<f32> = 
-        na::Isometry2::new(
-            na::Vector2::new(p2_transform.translation().x, p2_transform.translation().y),
-            p2_transform.rotation().angle(),
-        );
+    p2_transform.set_translation(starting_positions[1].translation.vector.push(0.0));
+    p2_transform.set_rotation_z_axis(starting_positions[1].rotation.angle());
+    let p2_position = starting_positions[1];
 
     // Create the shape for tanks
     let tank_shape = nc::shape::ShapeHandle::new(nc::shape::Cuboid::new(na::Vector2::new(
@@ -352,3 +332,21 @@ fn init_players(world: &mut World) {
         .with(p2_transform)
         .build();
 }
+
+// Don't even look at this
+// UPDATE: I had to fork the entire amethyst repo just to NOT do this
+/*
+use na::{Scalar, Dim, storage::Storage};
+use math::{Scalar as Scalar1, Dim as Dim1, storage::Storage as Storage1};
+fn translate_vector_versions<N: Scalar + Scalar1, D: Dim + Dim1, S: Storage<N, D> + Storage1<N, D>>(vec: na::Vector<N, D, S>) -> math::Vector<N, D, S> {
+    math::Vector::from_data(vec.data)
+}
+
+#[test]
+fn test_vector_version_translation() {
+    let vector = na::Vector2::new(2.0, 3.0);
+    let vector1 = translate_vector_versions(vector);
+
+    assert!(vector1 = math::Vector2::new(2.0, 3.0))
+}
+*/

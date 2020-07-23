@@ -6,7 +6,6 @@ use amethyst::{
     prelude::*,
     ecs::{Entities, WriteStorage, WriteExpect},
     core::Transform,
-    core::math as core_na,
     window::ScreenDimensions,
     renderer::resources::Tint,
 };
@@ -20,7 +19,7 @@ use crate::graphics::{ShapeRender, QuadMesh};
 
 pub struct MazeLevel {
     pub maze: Maze,
-    pub starting_positions: [na::Point2<f32>; 2],
+    pub starting_positions: [na::Isometry2<f32>; 2],
     pub reset_timer: Option<f32>,
 }
 
@@ -34,7 +33,7 @@ impl MazeLevel {
         
         let mut level = MazeLevel {
             maze,
-            starting_positions: [na::Point::origin(); 2],
+            starting_positions: [na::Isometry2::identity(); 2],
             reset_timer: None,
         };
 
@@ -90,13 +89,19 @@ impl MazeLevel {
         // Determine the starting positions for players
         // which are the opposite corners of the maze
         self.starting_positions = [
-            na::Point2::<f32>::new(
-                self.maze.start_cell.col as f32 * maze_config.cell_width + (maze_config.cell_width * 0.5) + x_shift, 
-                self.maze.start_cell.row as f32 * maze_config.cell_height + (maze_config.cell_height) * 0.5 + y_shift
+            na::Isometry2::new(
+                na::Vector2::<f32>::new(
+                    self.maze.start_cell.col as f32 * maze_config.cell_width + (maze_config.cell_width * 0.5) + x_shift, 
+                    self.maze.start_cell.row as f32 * maze_config.cell_height + (maze_config.cell_height) * 0.5 + y_shift
+                ),
+                0.0_f32.to_radians()
             ),
-            na::Point2::<f32>::new(
-                self.maze.end_cell.col as f32 * maze_config.cell_width + (maze_config.cell_width * 0.5) + x_shift, 
-                self.maze.end_cell.row as f32 * maze_config.cell_height + (maze_config.cell_height) * 0.5 + y_shift
+            na::Isometry2::new(
+                na::Vector2::<f32>::new(
+                    self.maze.end_cell.col as f32 * maze_config.cell_width + (maze_config.cell_width * 0.5) + x_shift, 
+                    self.maze.end_cell.row as f32 * maze_config.cell_height + (maze_config.cell_height) * 0.5 + y_shift
+                ),
+                180.0_f32.to_radians()
             ),
         ];
 
@@ -182,7 +187,7 @@ impl MazeLevel {
             let half_length = (if horizontal { maze_config.cell_width } else { maze_config.cell_height } + maze_config.w_thickness) / 2.;
             let half_width = maze_config.w_thickness / 2.;
 
-            wall_transform.set_scale(core_na::Vector3::new(
+            wall_transform.set_scale(na::Vector3::new(
                 half_length * 2., half_width * 2., 1.0
             ));
 

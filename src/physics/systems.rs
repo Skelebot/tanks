@@ -34,17 +34,8 @@ impl<'s> System<'s> for PTTSystem {
         for (body, transform) in (&bodies, &mut transforms).join() {
             if let Some(rb) = physics.get_rigid_body(body.handle) {
                 let pos = rb.position();
-                transform.set_translation(
-                    amethyst::core::math::Vector3::<f32>::new(
-                        pos.translation.vector.x, pos.translation.vector.y, transform.translation().z
-                    )
-                );
-                transform.set_rotation(
-                    amethyst::core::math::UnitQuaternion::from_axis_angle(
-                        &amethyst::core::math::Vector::z_axis(),
-                        pos.rotation.angle(),
-                    )
-                );
+                transform.set_translation(pos.translation.vector.push(transform.translation().z));
+                transform.set_rotation_z_axis(pos.rotation.angle());
             }
         }
     }

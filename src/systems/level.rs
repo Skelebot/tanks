@@ -1,5 +1,4 @@
 use nphysics2d as np;
-use nalgebra as na;
 use amethyst::{
     core::Transform,
     renderer::{
@@ -146,10 +145,7 @@ impl<'s> System<'s> for LevelSystem {
                 // Move the tanks to new starting positions
                 for (index, (_, body)) in (&tanks, &mut bodies).join().enumerate() {
                     let body = physics.get_rigid_body_mut(body.handle).unwrap();
-                    body.set_position(na::Isometry2::new(
-                        na::Vector2::new(level.starting_positions[index].x, level.starting_positions[index].y),
-                        0.0
-                    ));
+                    body.set_position(level.starting_positions[index]);
                 }
 
                 physics.maintain();
