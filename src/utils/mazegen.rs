@@ -40,7 +40,7 @@ impl Maze {
             height,
             cells: vec![vec![true; height]; width], 
             walls_h: vec![vec![true; width]; height + 1],
-            walls_v: vec![vec![true; width + 1]; height],
+            walls_v: vec![vec![true; width]; height],
             start_cell: Cell::default(),
             end_cell: Cell::default()
         }
@@ -50,7 +50,7 @@ impl Maze {
     pub fn reset(&mut self) {
         self.cells = vec![vec![true; self.height]; self.width];
         self.walls_h = vec![vec![true; self.width]; self.height + 1];
-        self.walls_v = vec![vec![true; self.width + 1]; self.height];
+        self.walls_v = vec![vec![true; self.width]; self.height];
         self.start_cell = Cell::default();
         self.end_cell = Cell::default();
     }

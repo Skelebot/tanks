@@ -78,8 +78,8 @@ impl MazeLevel {
 
         //Determine the shift of everything so that the maze sits in the middle of the screen
         //TODO_VL: Scaling, if the maze cannot fit on the screen or is too small
-        let x_shift = (screen_dimensions.width() / 2.0) - ((self.maze.width as f32 * maze_config.cell_width) / 2.0);
-        let y_shift = (screen_dimensions.height() / 2.0) - ((self.maze.height as f32 * maze_config.cell_height) / 2.0);
+        let x_shift = (screen_dimensions.width() / 2.0) - (((self.maze.width*2) as f32 * maze_config.cell_width) / 2.0);
+        let y_shift = (screen_dimensions.height() / 2.0) - (((self.maze.height) as f32 * maze_config.cell_height) / 2.0);
 
         // Every wall entity has a TempMarker Component, so it will be removed every level change
         // Reset and regenerate the maze
@@ -139,6 +139,34 @@ impl MazeLevel {
             }
         }
 
+        // Reflected horizontal walls
+        for (y_index, h_row) in self.maze.walls_h.iter().rev().enumerate() {
+            // Take only indexes of active walls
+            // Enumerate before filtering so that we get original indexes, then drop the bool used for filtering from the tuple
+            for x_index in h_row.iter().rev().enumerate().filter(|(_, &is_active)| is_active).map(|(index, _)| index) {
+                let x_index = maze_config.maze_width + x_index - 1;
+                // Position is the middle of the wall
+                let translation = na::Translation::from(na::Vector2::new(
+                    (maze_config.cell_width / 2.) + (x_index as f32 * maze_config.cell_width) + x_shift,
+                    (y_index as f32 * maze_config.cell_height) + y_shift
+                ));
+
+                let pos = na::Isometry2::from_parts(
+                    translation,
+                    // Walls are horizontal by default
+                    na::UnitComplex::new(0.0)
+                );
+
+                // Create the RigidBody
+                let mut rb = np::object::RigidBodyDesc::new().position(pos).build();
+
+                // Walls are always static
+                rb.set_status(np::object::BodyStatus::Static);
+
+                w_pos_rb_h.push((pos, rb, true));
+            }
+        }
+
         //------------------------------
         //VERTICAL WALLS
         //------------------------------
@@ -148,6 +176,32 @@ impl MazeLevel {
             // Take only indexes of active walls
             // Enumerate before filtering so that we get original indexes, then drop the bool used for filtering from the tuple
             for x_index in v_row.iter().enumerate().filter(|(_, &is_active)| is_active).map(|(index, _)| index) {
+                let translation = na::Translation::from(na::Vector2::new(
+                    (x_index as f32 * maze_config.cell_width) + x_shift,
+                    (maze_config.cell_height * 0.5) + (y_index as f32 * maze_config.cell_height) + y_shift
+                ));
+
+                let pos = na::Isometry2::from_parts(
+                    translation,
+                    // Rotate the wall 90 degrees, so that it's vertical
+                    na::UnitComplex::new(90.0_f32.to_radians())
+                );
+
+                // Create the RigidBody
+                let mut rb = np::object::RigidBodyDesc::new().position(pos).build();
+
+                rb.set_status(np::object::BodyStatus::Static);
+
+                w_pos_rb_h.push((pos, rb, false));
+            }
+        }
+
+        // Reflected vertical walls
+        for (y_index, v_row) in self.maze.walls_v.iter().rev().enumerate() {
+            // Take only indexes of active walls
+            // Enumerate before filtering so that we get original indexes, then drop the bool used for filtering from the tuple
+            for x_index in v_row.iter().rev().enumerate().filter(|(_, &is_active)| is_active).map(|(index, _)| index) {
+                let x_index = maze_config.maze_width + x_index;
                 let translation = na::Translation::from(na::Vector2::new(
                     (x_index as f32 * maze_config.cell_width) + x_shift,
                     (maze_config.cell_height * 0.5) + (y_index as f32 * maze_config.cell_height) + y_shift

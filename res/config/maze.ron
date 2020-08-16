@@ -2,7 +2,7 @@
     cell_width: 64.0,
     cell_height: 64.0,
     w_thickness: 8.0,
-    maze_width: 8,
+    maze_width: 4,
     maze_height: 5,
     sprite_num: 3,
     sprite_length: 64.0,

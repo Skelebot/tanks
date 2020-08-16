@@ -25,8 +25,6 @@ use crate::systems::camshake::CameraShake;
 use crate::config::DestroyConfig;
 use crate::config::PerformanceConfig;
 
-// TODO_F: Make it possible to explode things like walls
-
 pub struct DestroySystem;
 
 impl<'s> System<'s> for DestroySystem {
@@ -138,8 +136,6 @@ impl<'s> System<'s> for DestroySystem {
                         4 => ColorKey::Text,
                         _ => unreachable!()
                     };
-                    // TODO_L: Weight the angle using the direction from which the tank was hit
-                    //       so that the particles fly in the opposite direction
                     // Angle at which the projectile will be thrown
                     let angle = angles.sample(&mut thread_rng);
                     let position = 
@@ -194,7 +190,6 @@ impl<'s> System<'s> for DestroySystem {
                 .set_linear_damping(destroy_config.particle_damping)
                 .set_angular_damping(destroy_config.particle_damping)
                 .set_velocity(np::algebra::Velocity2::linear(vel.x, vel.y));
-            // TODO_M: Dynamic/kinematic particles choice for performance
             let body = physics::Body { handle: physics.add_rigid_body(particle_rb_desc.position(position).build()) };
 
 

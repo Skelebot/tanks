@@ -69,8 +69,7 @@ impl<'s> System<'s> for CannonSystem {
         ): Self::SystemData,
     ) {
         // Entities and Bodies to be added to them because we can't borrow bodies twice in the same scope
-        // TODO_O: We can't add more than 4 bullets per frame, change this to an array
-        let mut bodies_to_add: Vec<(Entity, physics::Body)> = Vec::new();
+        let mut bodies_to_add: Vec<(Entity, physics::Body)> = Vec::with_capacity(4);
         for (tank, body) in (&mut tanks, &bodies).join() {
             if let Weapon::Cannon {
                     ref mut shooting_timer,

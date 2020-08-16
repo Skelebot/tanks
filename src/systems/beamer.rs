@@ -165,9 +165,6 @@ impl<'s> System<'s> for BeamerSystem {
 
                             beam.replace(beam_entity);
 
-                            // Recoil
-                            // TODO: Steady force pushing the tank opposite to the shooting direction would be fun
-
                             // Start shooting timer
                             shooting_timer.replace(beamer_config.shoot_time);
 
@@ -182,7 +179,6 @@ impl<'s> System<'s> for BeamerSystem {
                 let body = physics.get_rigid_body_mut(body.handle).unwrap();
                 if let Some(square) = heating_square {
                     // Update the heating square's transform
-                    // TODO_VL: Clean up
                     let rotation = na::UnitQuaternion::from_axis_angle(&na::Vector::z_axis(), body.position().rotation.angle());
                     let translation = body.position().translation.vector.push(0.1)
                         + rotation * na::Vector3::<f32>::new(0.0, tank_config.size_y as f32 / 2.0, 0.1);

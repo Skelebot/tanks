@@ -44,7 +44,6 @@ impl Default for SpawnSystem {
     fn default() -> Self {
         Self {
             spawn_timer: 0.0,
-            // TODO_H: Fix spawns not being continously spawned (actually subtract this)
             spawns_alive: 0,
             // We want to initialize it the first time someone calls run()
             // because we need the maze_config etc to actually initialize it
@@ -230,6 +229,8 @@ impl<'s> System<'s> for SpawnSystem {
                                     // Pick up only if the tank doesn't already have that weapon
                                     if !(discriminant(&tank.weapon) == discriminant(spawn_weapon)) {
                                         tank.weapon = spawn_weapon.clone();
+                                        // Decrease the counter
+                                        self.spawns_alive -= 1;
                                         spawns_to_remove.push(entity);
                                     }
                                 },
