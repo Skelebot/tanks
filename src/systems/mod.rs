@@ -3,7 +3,7 @@ mod level;
 mod destroy;
 mod beamer;
 mod cannon;
-mod spawn;
+//mod spawn;
 mod color;
 
 pub mod camshake;
@@ -13,7 +13,7 @@ pub use tank::TankSystem;
 pub use beamer::BeamerSystem;
 pub use cannon::CannonSystem;
 pub use destroy::DestroySystem;
-pub use spawn::SpawnSystem;
+//pub use spawn::SpawnSystem;
 pub use color::ColorSystem;
 
 pub use camshake::CameraShakeSystem;

@@ -128,7 +128,7 @@ impl<'s> System<'s> for SpawnSystem {
             // Spawn a spawn
             // Determine the location
             // We want spawns to appear in the middle of cells
-            let x_shift = (screen_dimensions.width() / 2.0) - ((level.maze.width as f32 * maze_config.cell_width) / 2.0) + (maze_config.cell_width / 2.0);
+            let x_shift = (screen_dimensions.width() / 2.0) - (((level.maze.width * 2) as f32 * maze_config.cell_width) / 2.0) + (maze_config.cell_width / 2.0);
             let y_shift = (screen_dimensions.height() / 2.0) - ((level.maze.height as f32 * maze_config.cell_height) / 2.0) + (maze_config.cell_height / 2.0);
 
             let mut x_cell = rng.gen_range(0, level.maze.width);

@@ -1,34 +1,48 @@
 List((
-  texture_width: 64,
+  texture_width: 72,
   texture_height: 64,
   sprites: [
-    // Red tank
+    // Breach
     (
       x: 0,
       y: 0,
       width: 24,
       height: 24,
     ),
-    // Blue tank
+    // Trophy system
     (
       x: 24,
       y: 0,
       width: 24,
       height: 24,
     ),
-    // Neutral bullet
+    // Snipe
     (
-      x: 58,
-      y: 1,
-      width: 6,
-      height: 6,
+      x: 48,
+      y: 0,
+      width: 24,
+      height: 24,
     ),
-    // A rocket
+    // Sombra
     (
-      x: 58,
-      y: 9,
-      width: 6,
-      height: 9,
-    )
+      x: 0,
+      y: 24,
+      width: 24,
+      height: 24,
+    ),
+    // Raze
+    (
+      x: 24,
+      y: 24,
+      width: 24,
+      height: 24,
+    ),
+    // Despacito
+    (
+      x: 48,
+      y: 24,
+      width: 24,
+      height: 24,
+    ),
   ]
 ))

@@ -21,7 +21,7 @@ pub enum ColorKey {
     Background,
     Text,
     Walls,
-    P1, P2, P3, P4
+    P1, P2, //P3, P4
 }
 use crate::tank;
 impl From<tank::Team> for ColorKey {

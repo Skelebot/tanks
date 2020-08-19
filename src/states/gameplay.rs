@@ -40,7 +40,7 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
             DispatcherBuilder::new()
                 .with(systems::LevelSystem, "level_system", &[])
                 .with(systems::TankSystem, "tank_system", &[/*"input_system",*/ "level_system"])
-                .with(systems::SpawnSystem::default(), "spawn_system", &["level_system"])
+                //.with(systems::SpawnSystem::default(), "spawn_system", &["level_system"])
 
                 .with_barrier()
                 .with(systems::BeamerSystem, "beamer_system", &[])
@@ -54,9 +54,6 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
                 .with_barrier()
                 .with(physics::StepperSystem, "stepper_system", &[])
                 .with(physics::PTTSystem, "physics_to_transform_system", &["stepper_system"])
-
-                .with_barrier()
-                .with(systems::ColorSystem, "color_system", &[])
 
                 .with_pool((*world.read_resource::<ArcThreadPool>()).clone())
                 .build();

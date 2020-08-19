@@ -148,7 +148,7 @@ impl Maze {
         // every cell in the maze can be reached, so we can even choose them
         // randomly, but choosing opposite corners is much more balanced
         self.start_cell = Cell::from(0, 0);
-        self.end_cell = Cell::from(self.width - 1, self.height - 1);
+        self.end_cell = Cell::from((self.width - 1) * 2, self.height - 1);
     }
  
     /// Displays a wall

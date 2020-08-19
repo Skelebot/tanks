@@ -10,6 +10,11 @@ pub use shapes::*;
 use amethyst::assets::Handle;
 use amethyst::renderer::types::Mesh;
 
+// Default triangle mesh for systems to clone
+pub struct TriangleMesh {
+    pub handle: Handle<Mesh>
+}
+
 // Default quad mesh for systems to clone
 pub struct QuadMesh {
     pub handle: Handle<Mesh>

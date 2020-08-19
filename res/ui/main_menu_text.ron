@@ -1,0 +1,94 @@
+#![enable(implicit_some)]
+Container(
+    transform: (
+        anchor: BottomLeft,
+        pivot: BottomLeft,
+        id: "main_menu_pane",
+        width: 1.,
+        height: 1.,
+        percent: true,
+    ),
+    background: SolidColor(0.0, 0.0, 0.0, 0.0),
+    children: [
+        Label(
+            transform: (
+                id: "play_text",
+                anchor: MiddleLeft,
+                pivot: MiddleLeft,
+                x: 80.,
+                y: 100.,
+                width: 90.,
+                height: 25.,
+                mouse_reactive: true,
+            ),
+            text: (
+                text: "Play",
+                font_size: 36.,
+                color: (1., 1., 1., 1.),
+                font: File("fonts/BalooThambi2-Regular.ttf", ("TTF", ())),
+            ),
+        ),
+        Label(
+            transform: (
+                id: "settings_text",
+                anchor: MiddleLeft,
+                pivot: MiddleLeft,
+                x: 80.,
+                y: 0.,
+                width: 135.,
+                height: 25.,
+                mouse_reactive: true,
+            ),
+            text: (
+                text: "Settings",
+                font_size: 36.,
+                color: (1., 1., 1., 1.),
+                font: File("fonts/BalooThambi2-Regular.ttf", ("TTF", ())),
+            ),
+        ),
+        Label(
+            transform: (
+                id: "exit_text",
+                anchor: MiddleLeft,
+                pivot: MiddleLeft,
+                x: 80.,
+                y: -100.,
+                width: 90.,
+                height: 25.,
+                mouse_reactive: true,
+            ),
+            text: (
+                text: "Exit",
+                font_size: 36.,
+                color: (1., 1., 1., 1.),
+                font: File("fonts/BalooThambi2-Regular.ttf", ("TTF", ())),
+            ),
+        ),
+        Container(
+            transform: (
+                anchor: TopMiddle,
+                pivot: Middle,
+                id: "top_color_box",
+                y: -0.1,
+                width: 0.8,
+                height: 0.01,
+                percent: true,
+            ),
+            background: SolidColor(1.0, 0.0, 0.0, 1.0),
+            children: []
+        ),
+        Container(
+            transform: (
+                anchor: BottomMiddle,
+                pivot: Middle,
+                id: "bottom_color_box",
+                y: 0.1,
+                width: 0.8,
+                height: 0.01,
+                percent: true,
+            ),
+            background: SolidColor(1.0, 0.0, 0.0, 1.0),
+            children: []
+        )
+    ]
+)

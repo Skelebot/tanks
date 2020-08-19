@@ -22,4 +22,4 @@ glsl-layout = "0.3.2"
 [dependencies.amethyst]
 git = "https://github.com/Skelebot/amethyst.git"
 branch = "old-wasm"
-features = ["gl"]
+features = ["vulkan"]

@@ -27,8 +27,15 @@ impl Colorscheme {
             Walls       => self.walls,
             P1          => self.p1,
             P2          => self.p2,
-            P3          => self.p3,
-            P4          => self.p4,
+            //P3          => self.p3,
+            //P4          => self.p4,
+        }
+    }
+    pub fn get_by_team(&self, team: &crate::tank::Team) -> Srgba {
+        use crate::tank::Team::*;
+        match team {
+            P1 => self.p1,
+            P2 => self.p2,
         }
     }
 }

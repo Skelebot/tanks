@@ -1,7 +1,7 @@
 use nalgebra as na;
 use amethyst::{
     prelude::*,
-    ui::{UiFinder, UiCreator},
+    ui::{UiFinder, UiCreator, UiTransform},
 };
 use amethyst::{
     assets::{AssetStorage, Handle, Loader, AssetLoaderSystemData, ProgressCounter, Completion},
@@ -19,7 +19,7 @@ use amethyst::{
     window::ScreenDimensions,
     utils::application_dir
 };
-use crate::graphics::{TintBox, ShapeRender, CircleMesh, QuadMesh};
+use crate::graphics::{TintBox, ShapeRender, CircleMesh, QuadMesh, TriangleMesh};
 use crate::utils::{TanksSpriteSheet, SpawnsSpriteSheet, color::Colorscheme, color::ColorschemeSet};
 use crate::markers::{DynamicColorMarker, ColorKey};
 use crate::systems::camshake::CameraShake;
@@ -27,7 +27,7 @@ use crate::systems::camshake::CameraShake;
 use crate::config;
 
 use crate::physics;
-use super::GameplayState;
+use super::MainMenuState;
 
 pub struct LoadingState {
     progress: ProgressCounter,
@@ -45,6 +45,7 @@ impl SimpleState for LoadingState {
 
         world.register::<TintBox>();
         world.register::<ShapeRender>();
+        world.register::<UiTransform>();
         world.register::<physics::Body>();
         world.register::<physics::Collider>();
 
@@ -53,30 +54,44 @@ impl SimpleState for LoadingState {
         // Initialize the physics engine
         world.insert(physics::Physics::new());
 
-        let mut mesh_builder = MeshBuilder::new();
-        mesh_builder
+        let mut quad_mesh_builder = MeshBuilder::new();
+        quad_mesh_builder
             .add_vertices::<Position, _>(vec![
                 Position::from([-0.5, 0.5, 0.0]),
                 Position::from([-0.5, -0.5, 0.0]),
                 Position::from([0.5, -0.5, 0.0]),
                 Position::from([0.5, 0.5, 0.0]),
             ]);
-        mesh_builder.set_indices(vec![0_u16, 1, 2, 0, 2, 3]);
+        quad_mesh_builder.set_indices(vec![0_u16, 1, 2, 0, 2, 3]);
 
-        let (quad, circle) = world.exec(|loader: AssetLoaderSystemData<'_, Mesh>| {
+        let mut triangle_mesh_builder = MeshBuilder::new();
+        triangle_mesh_builder
+            .add_vertices::<Position, _>(vec![
+                Position::from([0.0, 0.5, 0.0]),
+                Position::from([-0.5, -0.5, 0.0]),
+                Position::from([0.5, -0.5, 0.0]),
+            ]);
+        triangle_mesh_builder.set_indices(vec![0_u16, 1, 2]);
+
+        let (triangle, quad, circle) = world.exec(|loader: AssetLoaderSystemData<'_, Mesh>| {
+            let triangle = loader.load_from_data(
+                triangle_mesh_builder.into(),
+                &mut self.progress
+            );
             let quad = loader.load_from_data(
-                mesh_builder.into(),
+                quad_mesh_builder.into(),
                 &mut self.progress
             );
             let circle = loader.load_from_data(
                 Shape::Circle(16).generate::<Vec<Position>>(None).into(),
                 &mut self.progress
             );
-            (quad, circle)
+            (triangle, quad, circle)
         });
 
         load_resources(world);
 
+        world.insert(TriangleMesh { handle: triangle });
         world.insert(QuadMesh { handle: quad });
         world.insert(CircleMesh { handle: circle });
 
@@ -116,7 +131,9 @@ impl SimpleState for LoadingState {
                 let loading_text_entity = data.world.exec(|finder: UiFinder<'_>| finder.find("loading_text").unwrap());
                 data.world.delete_entity(loading_text_entity).unwrap();
 
-                Trans::Switch(Box::new(GameplayState::default()))
+                // FIXME: Actual controlling player
+                Trans::Switch(Box::new(MainMenuState::new(crate::tank::Team::P1)))
+                //Trans::None
             }
             Completion::Loading => Trans::None
         }
@@ -184,7 +201,7 @@ fn init_background(world: &mut World, dimensions: &ScreenDimensions) {
     world.create_entity()
         .with(shape_render)
         .with(transform)
-        .with(Tint(Default::default()))
+        .with(Tint(amethyst::renderer::palette::Srgba::new(0.02, 0.02, 0.02, 1.0)))
         .with(DynamicColorMarker(ColorKey::Background))
         .build();
 }
@@ -210,7 +227,7 @@ fn load_resources(world: &mut World) {
     let maze_config         = config::MazeConfig    ::load(&config.join("maze.ron"      )).unwrap();
     let beamer_config       = config::BeamerConfig  ::load(&config.join("beamer.ron"    )).unwrap();
     let cannon_config       = config::CannonConfig  ::load(&config.join("cannon.ron"    )).unwrap();
-    let spawn_config        = config::SpawnConfig   ::load(&config.join("spawn.ron"     )).unwrap();
+    //let spawn_config        = config::SpawnConfig   ::load(&config.join("spawn.ron"     )).unwrap();
     let destroy_config      = config::DestroyConfig ::load(&config.join("destroy.ron"   )).unwrap();
 
     let performance_config  = config::PerformanceConfig::load(&config.join( "performance.ron")).unwrap();
@@ -219,7 +236,7 @@ fn load_resources(world: &mut World) {
     world.insert(maze_config);
     world.insert(beamer_config);
     world.insert(cannon_config);
-    world.insert(spawn_config);
+    //world.insert(spawn_config);
     world.insert(destroy_config);
     world.insert(performance_config);
 }

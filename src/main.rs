@@ -8,7 +8,10 @@ use amethyst::{
     renderer::{
         plugins::RenderToWindow,
         rendy::hal::command::ClearColor,
-        types::DefaultBackend,
+        // vulkan backend
+        //rendy::core::vulkan::Backend,
+        // gl backend
+        rendy::core::gl::Backend,
         RenderingBundle,
     },
     input::{InputBundle, StringBindings},
@@ -43,7 +46,7 @@ fn main() -> amethyst::Result<()> {
     let app_root = application_root_dir()?;
     let resources = app_root.join("res");
 
-    let config      = resources.join("config");
+    let config              = resources.join("config");
     let display_config      = DisplayConfig::load(&config.join( "display.ron"))?;
 
     let input_bundle = InputBundle::<StringBindings>::new()
@@ -53,15 +56,15 @@ fn main() -> amethyst::Result<()> {
 
     let game_data = GameDataBuilder::default()
         .with(amethyst::assets::Processor::<crate::utils::color::Colorscheme>::new(), "colorscheme_processor", &[])
+        .with(systems::ColorSystem, "color_system", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
         .with_bundle(UiBundle::<StringBindings>::new())?
         .with_bundle(
-            RenderingBundle::<DefaultBackend>::new(display_config, &event_loop)
+            RenderingBundle::<Backend>::new(display_config, &event_loop)
                 .with_plugin(
                     RenderToWindow::new().with_clear(ClearColor {
-                        // float32: [0.918, 0.918, 0.918, 1.0]    //light background
-                        float32: [0.0145, 0.0165, 0.0204, 1.0]   //dark background
+                        float32: [0., 0., 0., 1.0] // doesn't matter, we cover it with our custom background
                     }))
                 .with_plugin(graphics::RenderFlat2D::default())
                 .with_plugin(graphics::RenderShapes::default())

@@ -422,6 +422,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff77d8686867eceff3105329d4698d96c2391c176d5d03adc90c7389162b5b8"
 
 [[package]]
+name = "ash"
+version = "0.30.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69daec0742947f33a85931fa3cb0ce5f07929159dcbd1f0cbb5b2912e2978509"
+dependencies = [
+ "libloading 0.5.2",
+]
+
+[[package]]
 name = "atom"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1317,6 +1326,25 @@ dependencies = [
  "wasm-bindgen",
  "web-sys",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "gfx-backend-vulkan"
+version = "0.5.0"
+source = "git+https://github.com/amethyst/gfx?branch=wasm#8537dfbe5ef742309496b7282a07653fc88f037d"
+dependencies = [
+ "arrayvec 0.5.1",
+ "ash",
+ "byteorder",
+ "core-graphics 0.19.2",
+ "gfx-hal",
+ "lazy_static",
+ "log",
+ "objc",
+ "raw-window-handle",
+ "smallvec 1.4.2",
+ "winapi 0.3.9",
+ "x11",
 ]
 
 [[package]]
@@ -2973,6 +3001,7 @@ version = "0.5.1"
 source = "git+https://github.com/amethyst/rendy.git?branch=wasm#26ec46deeda4ab0368e3c0d30577c4a5ef821683"
 dependencies = [
  "gfx-backend-gl",
+ "gfx-backend-vulkan",
  "gfx-hal",
  "lazy_static",
  "log",
@@ -4236,6 +4265,16 @@ checksum = "d59cefebd0c892fa2dd6de581e937301d8552cb44489cdff035c6187cb63fa5e"
 dependencies = [
  "winapi 0.2.8",
  "winapi-build",
+]
+
+[[package]]
+name = "x11"
+version = "2.18.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "77ecd092546cb16f25783a5451538e73afc8d32e242648d54f4ae5459ba1e773"
+dependencies = [
+ "libc",
+ "pkg-config",
 ]
 
 [[package]]

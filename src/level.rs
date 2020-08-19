@@ -76,6 +76,8 @@ impl MazeLevel {
      ) {
         use np::object::Body;
 
+        // TODO: Unreachable space visual hint
+
         //Determine the shift of everything so that the maze sits in the middle of the screen
         //TODO_VL: Scaling, if the maze cannot fit on the screen or is too small
         let x_shift = (screen_dimensions.width() / 2.0) - (((self.maze.width*2) as f32 * maze_config.cell_width) / 2.0);
