@@ -37,7 +37,9 @@ extern crate derivative;
 use derivative::*;
 extern crate failure;
 use super::pod::SpriteArgs;
-use super::TintBox;
+use super::{TintBox, SecondaryColor};
+
+use crate::utils::color::*;
 
 /// A [RenderPlugin] for drawing 2d objects with flat shading.
 /// Required to display sprites defined with [SpriteRender] component.
@@ -165,23 +167,23 @@ impl<B: Backend> RenderGroup<B, World> for DrawFlat2DCustom<B> {
         let (
             sprite_sheet_storage,
             tex_storage,
-            visibility,
             //_hiddens,
             //_hidden_props,
             sprite_renders,
             transforms,
             tints,
             tint_boxes,
+            secondary_colors,
         ) = <(
             Read<'_, AssetStorage<SpriteSheet>>,
             Read<'_, AssetStorage<Texture>>,
-            ReadExpect<'_, SpriteVisibility>,
             //ReadStorage<'_, Hidden>,
             //ReadStorage<'_, HiddenPropagate>,
             ReadStorage<'_, SpriteRender>,
             ReadStorage<'_, Transform>,
             ReadStorage<'_, Tint>,
             ReadStorage<'_, TintBox>,
+            ReadStorage<'_, SecondaryColor>,
         )>::fetch(world);
 
         self.env.process(factory, index, world);
@@ -200,17 +202,18 @@ impl<B: Backend> RenderGroup<B, World> for DrawFlat2DCustom<B> {
                 &transforms,
                 tints.maybe(),
                 tint_boxes.maybe(),
-                &visibility.visible_unordered,
+                secondary_colors.maybe(),
             )
                 .join()
-                .filter_map(|(sprite_render, global, tint, tint_box, _)| {
+                .filter_map(|(sprite_render, global, tint, tint_box, secondary_color)| {
                     let (batch_data, texture) = SpriteArgs::from_data(
                         &tex_storage,
                         &sprite_sheet_storage,
                         &sprite_render,
                         &global,
                         tint,
-                        tint_box
+                        tint_box,
+                        secondary_color.map(|x| &x.0),
                     )?;
                     let (tex_id, _) = textures_ref.insert(
                         factory,

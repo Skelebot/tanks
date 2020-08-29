@@ -230,6 +230,8 @@ fn load_resources(world: &mut World) {
     //let spawn_config        = config::SpawnConfig   ::load(&config.join("spawn.ron"     )).unwrap();
     let destroy_config      = config::DestroyConfig ::load(&config.join("destroy.ron"   )).unwrap();
 
+    let raze_config = config::RazeConfig::load(&config.join("raze.ron")).unwrap();
+
     let performance_config  = config::PerformanceConfig::load(&config.join( "performance.ron")).unwrap();
 
     world.insert(tank_config);
@@ -238,6 +240,9 @@ fn load_resources(world: &mut World) {
     world.insert(cannon_config);
     //world.insert(spawn_config);
     world.insert(destroy_config);
+
+    world.insert(raze_config);
+
     world.insert(performance_config);
 }
 

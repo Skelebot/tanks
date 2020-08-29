@@ -1,0 +1,12 @@
+(
+    rocket_sprite_num: 6,
+    rocket_width: 6.0,
+    rocket_height: 11.0,
+    rocket_self_safety_margin: 12.5,
+    rocket_velocity: 150.0,
+    rocket_margin: 1.3,
+    rocket_shoot_time: 8.0,
+    rocket_lifetime: 5.0,
+    rocket_radius: 80.0,
+    rocket_accel: 5.0,
+)

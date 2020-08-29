@@ -21,7 +21,7 @@ use crate::markers::{DynamicColorMarker, ColorKey};
 use crate::utils::TanksSpriteSheet;
 use crate::level::MazeLevel;
 use crate::config::TankConfig;
-use crate::tank::{Tank, Team};
+use crate::tank::{Tank, Team, Class};
 use crate::scoreboard::Scoreboard;
 use crate::weapons::Weapon;
 
@@ -46,6 +46,9 @@ impl<'a, 'b> SimpleState for GameplayState<'a, 'b> {
                 .with(systems::BeamerSystem, "beamer_system", &[])
                 .with(systems::CannonSystem, "cannon_system", &[])
                 // .with(systems::RocketSystem, "rocket_system", &["spawn_system"])
+
+                .with_barrier()
+                .with(systems::classes::RazeSystem, "raze_system", &[])
 
                 .with_barrier()
                 .with(systems::DestroySystem, "destroy_system", &[])
@@ -233,10 +236,10 @@ fn init_players(world: &mut World) {
     let starting_positions = world.read_resource::<MazeLevel>().starting_positions;
 
     // Create the SpriteRenders
-    let sprites: Vec<SpriteRender> = tank_config.sprite_nums.iter()
+    let sprites: Vec<SpriteRender> = (0..6usize)
         .map(|i| SpriteRender {
             sprite_sheet: world.fetch::<TanksSpriteSheet>().handle.clone(),
-            sprite_number: *i,
+            sprite_number: i,
         }).collect();
     
     // Set tanks' transforms to level's starting positions
@@ -307,8 +310,8 @@ fn init_players(world: &mut World) {
 
     // Create the p1 tank
     world.create_entity()
-        .with(Tank::new(Team::P1, Weapon::default()))
-        .with(sprites[0].clone())
+        .with(Tank::new(Team::P1, Weapon::default(), Class::Raze))
+        .with(sprites[tank_config.red_default_sprite].clone())
         .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P1))
         .with(TintBox([x, y, width, height]))
@@ -319,8 +322,8 @@ fn init_players(world: &mut World) {
 
     // Create the p2 tank
     world.create_entity()
-        .with(Tank::new(Team::P2, Weapon::default()))
-        .with(sprites[1].clone())
+        .with(Tank::new(Team::P2, Weapon::default(), Class::Raze))
+        .with(sprites[tank_config.blue_default_sprite].clone())
         .with(Tint(Default::default()))
         .with(DynamicColorMarker(ColorKey::P2))
         .with(TintBox([x, y, width, height]))

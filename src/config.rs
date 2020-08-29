@@ -11,7 +11,8 @@ pub struct TankConfig {
     pub max_angular_vel: f32,
     pub linear_damping: f32,
     pub angular_damping: f32,
-    pub sprite_nums: Vec<usize>,
+    pub red_default_sprite: usize,
+    pub blue_default_sprite: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -87,4 +88,18 @@ pub struct DestroyConfig {
 
     pub tank_explosion_shake_duration: f32,
     pub tank_explosion_shake_magnitude: f32,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct RazeConfig {
+    pub rocket_sprite_num: usize,
+    pub rocket_width: f32,
+    pub rocket_height: f32,
+    pub rocket_self_safety_margin: f32,
+    pub rocket_velocity: f32,
+    pub rocket_margin: f32,
+    pub rocket_shoot_time: f32,
+    pub rocket_lifetime: f32,
+    pub rocket_radius: f32,
+    pub rocket_accel: f32,
 }

@@ -9,6 +9,7 @@ pub use shapes::*;
 
 use amethyst::assets::Handle;
 use amethyst::renderer::types::Mesh;
+use amethyst::renderer::resources::Tint;
 
 // Default triangle mesh for systems to clone
 pub struct TriangleMesh {
@@ -30,6 +31,10 @@ impl Component for TintBox {
     type Storage = DenseVecStorage<Self>;
 }
 
+pub struct SecondaryColor(pub Tint);
+impl Component for SecondaryColor {
+    type Storage = DenseVecStorage<Self>;
+}
 // Here goes the longest doc comment i have ever written in comparison to how long the actual function is
 
 /// Map a number from one range of numbers to another

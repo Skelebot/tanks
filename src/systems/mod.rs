@@ -6,6 +6,8 @@ mod cannon;
 //mod spawn;
 mod color;
 
+pub mod classes;
+
 pub mod camshake;
 
 pub use level::LevelSystem;

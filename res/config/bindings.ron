@@ -1,12 +1,14 @@
 (
   axes: {
-    "p1_forward": Emulated(pos: Key(W), neg: Key(S)),
-    "p1_side": Emulated(pos: Key(D), neg: Key(A)),
-    "p2_forward": Emulated(pos: Key(Up), neg: Key(Down)),
-    "p2_side": Emulated(pos: Key(Right), neg: Key(Left)),
+    Throttle(0): Emulated(pos: Key(W), neg: Key(S)),
+    Steering(0): Emulated(pos: Key(D), neg: Key(A)),
+    Throttle(1): Emulated(pos: Key(Up), neg: Key(Down)),
+    Steering(1): Emulated(pos: Key(Right), neg: Key(Left)),
   },
   actions: {
-    "p1_fire": [[Key(Q)]],
-    "p2_fire": [[Key(M)]],
+    Shoot(0): [[Key(C)]],
+    Ability(0): [[Key(V)]],
+    Shoot(1): [[Key(K)]],
+    Ability(1): [[Key(L)]],
   },
 )

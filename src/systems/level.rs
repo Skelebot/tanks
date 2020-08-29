@@ -125,6 +125,7 @@ impl<'s> System<'s> for LevelSystem {
 
                     tank.weapon = Weapon::default();
                     tank.state = TankState::Alive;
+                    tank.ability_refresh = None;
                 }
 
                 level.rebuild(

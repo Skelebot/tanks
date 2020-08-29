@@ -112,7 +112,7 @@ impl<'s> System<'s> for CannonSystem {
                         let vel_vec = body.position().rotation * na::Vector2::new(0.0, cannon_config.bullet_velocity);
                         let velocity = np::algebra::Velocity2::new(
                             na::Vector2::new(vel_vec.x, vel_vec.y),
-                            5.0,   // Add a spin to the bullet - fixes some errors with zero-angle collisions 
+                            0.0,   // Add a spin to the bullet - fixes some errors with zero-angle collisions 
                         );
                         let shape = nc::shape::ShapeHandle::new(nc::shape::Ball::new(cannon_config.bullet_radius));
                         let body = np::object::RigidBodyDesc::new()

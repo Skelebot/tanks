@@ -1,6 +1,6 @@
 (
-    cell_width: 64.0,
-    cell_height: 64.0,
+    cell_width: 72.0,
+    cell_height: 72.0,
     w_thickness: 8.0,
     // This is the width of a single half of the maze, which gets reflected to form a second half
     maze_width: 4,

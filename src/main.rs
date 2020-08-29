@@ -8,13 +8,11 @@ use amethyst::{
     renderer::{
         plugins::RenderToWindow,
         rendy::hal::command::ClearColor,
-        // vulkan backend
         //rendy::core::vulkan::Backend,
-        // gl backend
         rendy::core::gl::Backend,
         RenderingBundle,
     },
-    input::{InputBundle, StringBindings},
+    input::InputBundle,
     utils::application_root_dir,
     ui::{RenderUi, UiBundle},
     window::{DisplayConfig, EventLoop},
@@ -31,6 +29,7 @@ mod scoreboard;
 mod physics;
 mod weapons;
 mod graphics;
+mod input;
 
 fn main() -> amethyst::Result<()> {
     amethyst::start_logger(amethyst::LoggerConfig {
@@ -49,7 +48,7 @@ fn main() -> amethyst::Result<()> {
     let config              = resources.join("config");
     let display_config      = DisplayConfig::load(&config.join( "display.ron"))?;
 
-    let input_bundle = InputBundle::<StringBindings>::new()
+    let input_bundle = InputBundle::<input::TankBindingTypes>::new()
         .with_bindings_from_file(config.join("bindings.ron")).expect("Failed to load keybindings");
 
     let event_loop = EventLoop::new();
@@ -59,7 +58,7 @@ fn main() -> amethyst::Result<()> {
         .with(systems::ColorSystem, "color_system", &[])
         .with_bundle(TransformBundle::new())?
         .with_bundle(input_bundle)?
-        .with_bundle(UiBundle::<StringBindings>::new())?
+        .with_bundle(UiBundle::<input::TankBindingTypes>::new())?
         .with_bundle(
             RenderingBundle::<Backend>::new(display_config, &event_loop)
                 .with_plugin(
@@ -74,7 +73,7 @@ fn main() -> amethyst::Result<()> {
     let game = Application::build(resources, states::LoadingState::default())?
         .with_frame_limit(
             FrameRateLimitStrategy::SleepAndYield(Duration::from_millis(2)),
-            80
+            60
         )
         .build(game_data)?;
     game.run_winit_loop(event_loop);

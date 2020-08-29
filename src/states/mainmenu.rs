@@ -90,10 +90,10 @@ impl MainMenuState {
 }
 
 impl SimpleState for MainMenuState {
-    fn on_start(&mut self, data: StateData<'_, GameData<'_, '_>>) {
+    fn on_start(&mut self, data: StateData<'_, GameData>) {
         // Create loading ui
         self.ui_root = Some(
-            data.world.exec(|mut creator: UiCreator<'_>| 
+            data.world.exec(|mut creator: UiCreator| 
                 creator.create("ui/main_menu_text.ron", ())
             )
         );
@@ -149,26 +149,29 @@ impl SimpleState for MainMenuState {
                         data.world.write_resource::<ColorschemeSet>().cycle_schemes();
                     }
                     // Move the cursor down
-                    if event.0 == VirtualKeyCode::Down && event.1 == ElementState::Pressed {
+                    if event.0 == VirtualKeyCode::S && event.1 == ElementState::Pressed {
                         if let Some(ref mut pos) = self.cursor_pos {
                             *pos += 1;
                             if *pos > 2 { *pos = 0 }
                         }
                     }
                     // Move the cursor up
-                    if event.0 == VirtualKeyCode::Up && event.1 == ElementState::Pressed {
+                    if event.0 == VirtualKeyCode::W && event.1 == ElementState::Pressed {
                         if let Some(ref mut pos) = self.cursor_pos {
                             if *pos == 0 { *pos = 3 }
                             *pos -= 1;
                         }
                     }
                     // "Press" the button under the cursor
-                    if (event.0 == VirtualKeyCode::Right && event.1 == ElementState::Pressed)
+                    if (event.0 == VirtualKeyCode::D && event.1 == ElementState::Pressed)
                         || (event.0 == VirtualKeyCode::Return && event.1 == ElementState::Pressed) {
                             if let Some(loc) = self.cursor_pos {
                             match loc {
+                                // Play
                                 0 => return Trans::Push(Box::new(GameplayState::default())),
+                                // Settings
                                 1 => return Trans::None,
+                                // Exit
                                 2 => return Trans::Quit,
                                 _ => unreachable!(),
                             }
@@ -177,7 +180,10 @@ impl SimpleState for MainMenuState {
                 }
                 Trans::None
             },
-            _ => Trans::None,
+            // TODO_H: Proper controlling player handling
+            // For some reason StateEvent::Input is broken in my version of Amethyst
+            // so we have to do everything manually
+            _ => Trans::None
         }
     }
 

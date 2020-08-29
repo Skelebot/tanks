@@ -6,7 +6,7 @@ use amethyst::{
     renderer::palette::Srgba,
     Error
 };
-use crate::markers::ColorKey;
+pub use crate::markers::ColorKey;
 #[derive(Serialize, Deserialize)]
 pub struct Colorscheme {
     pub background: Srgba,

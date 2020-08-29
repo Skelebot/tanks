@@ -15,12 +15,14 @@ layout(location = 4) in vec2 v_offset;
 layout(location = 5) in float depth;
 layout(location = 6) in vec4 tint;
 layout(location = 7) in vec4 tintbox;
+layout(location = 8) in vec4 secondary_color;
 
 layout(location = 0) out VertexData {
     vec2 tex_uv;
     vec2 uv;
     vec4 tint;
     vec4 tintbox;
+    vec4 default_tint;
 } vertex;
 
 const vec2 positions[4] = vec2[](
@@ -43,6 +45,7 @@ void main() {
     vertex.uv = vec2(tex_u, tex_v);
     vertex.tint = tint;
     vertex.tintbox = tintbox;
+    vertex.secondary_color = secondary_color;
     vec2 final_pos = position + tex_u * dir_x + tex_v * dir_y;
     vec4 vertex_pos = proj_view * vec4(final_pos, depth, 1.0);
     gl_Position = vertex_pos;

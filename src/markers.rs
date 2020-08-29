@@ -37,3 +37,7 @@ pub struct DynamicColorMarker(pub ColorKey);
 impl Component for DynamicColorMarker {
     type Storage = DenseVecStorage<Self>;
 }
+pub struct DynamicSecondaryColorMarker(pub ColorKey);
+impl Component for DynamicSecondaryColorMarker {
+    type Storage = DenseVecStorage<Self>;
+}

@@ -17,6 +17,7 @@ use amethyst::renderer::rendy::{
     mesh::{AsVertex, VertexFormat},
 };
 use super::TintBox as TintBoxComponent;
+use super::SecondaryColor as SecondaryColorComponent;
 
 #[derive(Clone, Copy, Debug, PartialEq, PartialOrd, AsStd140)]
 #[repr(C, align(16))]
@@ -71,6 +72,8 @@ pub struct SpriteArgs {
     pub tint: vec4,
     /// The xy coordinates + width and height of a box where tint will be applied
     pub tint_box: vec4,
+    /// The default tint for pixels outside the tint_box
+    pub secondary_color: vec4,
 }
 
 impl AsVertex for SpriteArgs {
@@ -84,6 +87,7 @@ impl AsVertex for SpriteArgs {
             (Format::R32Sfloat, "depth"),
             (Format::Rgba32Sfloat, "tint"),
             (Format::Rgba32Sfloat, "tint_box"),
+            (Format::Rgba32Sfloat, "secondary_color"),
         ))
     }
 }
@@ -103,6 +107,7 @@ impl SpriteArgs {
         transform: &Transform,
         tint: Option<&TintComponent>,
         tint_box: Option<&TintBoxComponent>,
+        secondary_color: Option<&TintComponent>,
     ) -> Option<(Self, &'a Handle<Texture>)> {
         let sprite_sheet = sprite_storage.get(&sprite_render.sprite_sheet)?;
         if !tex_storage.contains(&sprite_sheet.texture) {
@@ -131,6 +136,10 @@ impl SpriteArgs {
                 tint_box: tint_box.map_or([-0.5, -0.5, 1.0, 1.0].into(), 
                     |t_box| vec4::from(t_box.0)
                 ),
+                secondary_color: secondary_color.map_or([1.0; 4].into(), |t| {
+                    let (r, g, b, a) = t.0.into_components();
+                    [r, g, b, a].into()
+                })
             },
             &sprite_sheet.texture,
         ))

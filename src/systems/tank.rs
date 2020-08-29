@@ -8,13 +8,14 @@ use amethyst::{
         System, Join,
         Read, ReadExpect, ReadStorage, WriteExpect, WriteStorage,
     },
-    input::{InputHandler, StringBindings},
+    input::InputHandler,
 };
-use crate::tank::{Tank, Team, TankState};
+use crate::tank::{Tank, TankState};
 use crate::physics;
 use crate::config::TankConfig;
 use crate::config::BeamerConfig;
 use crate::weapons::Weapon;
+use crate::input::*;
 
 pub struct TankSystem;
 
@@ -22,7 +23,7 @@ impl<'s> System<'s> for TankSystem {
     #[allow(clippy::type_complexity)]
     type SystemData = (
         WriteStorage<'s, Tank>,
-        Read<'s, InputHandler<StringBindings>>,
+        Read<'s, InputHandler<TankBindingTypes>>,
         ReadExpect<'s,  TankConfig>,
         ReadStorage<'s, physics::Body>,
         WriteExpect<'s, physics::Physics>,
@@ -46,21 +47,15 @@ impl<'s> System<'s> for TankSystem {
         for (tank, body) in (&mut tanks, &bodies).join() {
             // Do not control dead tanks
             if tank.state == TankState::Alive {
-                // TODO_L: Parametric input axis names and teams for any arbitrary number of players
-                let (mov_forward, mov_side, fire) = match tank.team {
-                    Team::P1 => (
-                        input.axis_value("p1_forward").expect("axis p1_forward not defined"),
-                        input.axis_value("p1_side").expect("axis p1_side not defined"),
-                        input.action_is_down("p1_fire").expect("action p1_fire not defined")
-                    ),
-                    Team::P2 => (
-                        input.axis_value("p2_forward").expect("axis p2_forward not defined"),
-                        input.axis_value("p2_side").expect("axis p2_side not defined"),
-                        input.action_is_down("p2_fire").expect("action p2_fire not defined")
-                    )
-                };
+                let (mov_forward, mov_side, fire, ability) = (
+                    input.axis_value(&AxisBinding::Throttle(tank.team.into())).expect("axis Throttle not defined"),
+                    input.axis_value(&AxisBinding::Steering(tank.team.into())).expect("axis Steering not defined"),
+                    input.action_is_down(&ActionBinding::Shoot(tank.team.into())).expect("action Shoot not defined"),
+                    input.action_is_down(&ActionBinding::Ability(tank.team.into())).expect("action Ability not defined"),
+                );
 
                 tank.is_shooting = fire;
+                tank.is_using_ability = ability;
 
                 let mut lock_rotation = false;
                 let mut lock_movement = false;
@@ -80,6 +75,13 @@ impl<'s> System<'s> for TankSystem {
                         lock_rotation = beamer_config.lock_rotation_when_shooting;
                         lock_movement = beamer_config.lock_movement_when_shooting;
                     }
+                }
+
+                if tank.state == TankState::Stunned {
+                    tank.is_shooting = false;
+                    tank.is_using_ability = false;
+                    lock_movement = true;
+                    lock_rotation = true;
                 }
 
                 let rb = physics.get_rigid_body_mut(body.handle).unwrap();
