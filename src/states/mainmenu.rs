@@ -81,8 +81,8 @@ impl MainMenuState {
             let mut storage = world.system_data::<WriteStorage<Transform>>();
             let cursor_trans = storage.get_mut(self.cursor.unwrap()).unwrap();
             cursor_trans.set_translation_xyz(
-                trans.pixel_x() - 20.,
-                trans.pixel_y() + (trans.height / 2.),
+                55.,
+                trans.pixel_y(),
                 1.1,//trans.global_z(),
             );
         }
