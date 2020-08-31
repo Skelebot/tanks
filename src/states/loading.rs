@@ -1,3 +1,5 @@
+use std::env::current_dir;
+
 use nalgebra as na;
 use amethyst::{
     prelude::*,
@@ -17,7 +19,6 @@ use amethyst::{
         Camera, ImageFormat, SpriteSheet, SpriteSheetFormat, Texture
     },
     window::ScreenDimensions,
-    utils::application_dir
 };
 use crate::graphics::{TintBox, ShapeRender, CircleMesh, QuadMesh, TriangleMesh};
 use crate::utils::{TanksSpriteSheet, SpawnsSpriteSheet, color::Colorscheme, color::ColorschemeSet};
@@ -222,7 +223,8 @@ fn init_camera(world: &mut World, dimensions: &ScreenDimensions) {
 }
 
 fn load_resources(world: &mut World) {
-    let config = application_dir("res/config").unwrap();
+    let config = current_dir().unwrap().join("res/config");
+
     let tank_config         = config::TankConfig    ::load(&config.join("tank.ron"      )).unwrap();
     let maze_config         = config::MazeConfig    ::load(&config.join("maze.ron"      )).unwrap();
     let beamer_config       = config::BeamerConfig  ::load(&config.join("beamer.ron"    )).unwrap();
@@ -252,7 +254,7 @@ fn load_colorschemes(world: &mut World, progress: &mut ProgressCounter) {
 
     // Unless someone puts a invalid file in the colors directory,
     // none of those `unwrap()`s may panic
-    let dir = application_dir("res/colors").unwrap();
+    let dir = current_dir().unwrap().join("res/colors");
     let paths = fs::read_dir(dir).unwrap();
 
     for path in paths {
